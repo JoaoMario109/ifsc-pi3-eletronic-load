@@ -41,8 +41,8 @@ About separators, the protocol supports 3 different separators, each one being u
 
 'IN?': This query will return if the load has it input activated or not right now, this means if the output terminals are actually enabled
 
-'IN:0': This command will set input to disabled
-'IN:1': This command will set input to enabled
+'IN 0': This command will set input to disabled
+'IN 1': This command will set input to enabled
 
 ### Modes
 
@@ -84,8 +84,8 @@ About separators, the protocol supports 3 different separators, each one being u
 
 'LK?': This query will return if front panel is enabled to user to interact or disabled right now
 
-'LK:0': This command will unlock front panel preventing user to interact with it
-'LK:1': This command will lock front panel allowing user to interact with it
+'LK 0': This command will unlock front panel preventing user to interact with it
+'LK 1': This command will lock front panel allowing user to interact with it
 
 # SD card
 
