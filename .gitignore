@@ -282,4 +282,12 @@ pyrightconfig.json
 .history
 .ionide
 
+### Zephyr files ###
+.west
+bootloader
+build
+modules
+tools
+zephyr
+
 # End of https://www.toptal.com/developers/gitignore/api/kicad,visualstudiocode,cmake,c++,python
