@@ -80,9 +80,9 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 ## Contact
 
-Alejo Perdomo Milar [alejo.pm@aluno.ifsc.edu.br](alejo.pm@aluno.ifsc.edu.br)
-João Mário Carnieletto Izoton Lago [joao.mcil2003@aluno.ifsc.edu.br](joao.mcil2003@aluno.ifsc.edu.br)
-Paulo Cezar Ventura Junior (paulo.cvj@aluno.ifsc.edu.br)[paulo.cvj@aluno.ifsc.edu.br]
+Alejo Perdomo Milar [alejo.pm@aluno.ifsc.edu.br](alejo.pm@aluno.ifsc.edu.br)\
+João Mário Carnieletto Izoton Lago [joao.mcil2003@aluno.ifsc.edu.br](joao.mcil2003@aluno.ifsc.edu.br)\
+Paulo Cezar Ventura Junior [paulo.cvj@aluno.ifsc.edu.br](paulo.cvj@aluno.ifsc.edu.br)
 
 Project Link: [https://github.com/JoaoMario109/ifsc-pi3-eletronic-load](https://github.com/JoaoMario109/ifsc-pi3-eletronic-load)
 
