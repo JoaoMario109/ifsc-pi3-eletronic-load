@@ -1,0 +1,5 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "esp32")(type "KiCad")(uri "${KIPRJMOD}/hardware_libs/esp32")(options "")(descr ""))
+  (lib (name "esp32-v1")(type "KiCad")(uri "${KIPRJMOD}/hardware_libs/esp32-v1")(options "")(descr ""))
+)
