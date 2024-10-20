@@ -1,96 +1,99 @@
-# SCPI Like protocol
+# SCPI-like Protocol
 
-## About the BUS
+## I2C Bus Overview
 
-All devices that wants to control the load must be capable of connecting in the I2C bus of the load to send commands to it. Right now there the protocol of the load covers 2 servers, each one being responsible for handling one main task on the load control.
+Devices controlling the load must connect to the load’s I2C bus to send commands. The protocol currently supports two servers, each responsible for a specific task in load control.
 
-* Load Server: This one is responsible to execute the active control of the power and analog sector of the load, it runs on the STM32 present on the load module
-* Panel Server: This one is responsible from handling configurations about the panel module (Holds WiFI, Panel and SD card), it allows the user to configure current network settings as well as read/write on the SD card and activate streamer module, it also allows for locking of the front panel to avoid mistakes like interactions while streamer is activated
+- **Load Server:** Manages active control of the power and analog systems on the load. This server runs on the STM32 in the load module.
+- **HMI Server:** Handles operations on the SD card in the front panel, manages load configuration files, and controls the streamer module for custom curve streaming, runs on the ESP32 in the front panel.
 
-### Addresses
+### I2C Addresses
 
-* Load Server uses address (0x....)
-* Panel Server uses address (0x....)
+- **Load Server:** 0xA
+- **HMI Server:** 0x5
 
-## About protocol specifications
 
-The protocol consists of small 2 char pieces organized in an hierarchical way where each piece represents a sub resource of the previous one and that all together generate the route to some resource to be operated.
+## Protocol Specifications
 
-About separators, the protocol supports 3 different separators, each one being used with an specific purpose:
-* The ':' separator, this one basically means access to a sub resource and that current resource does not ends the parse tree
-* The '?' This one represents a query, the using of this operator means that the parse tree will be stopped as soon as this operator is hit and the level where it stopped must implement the query functionality
-* The ' ' this operator indicates that the next block of text provided after it will be passed as value to current level that implements it functionality, it will automatically stops the parse tree and pass the remaining string to current level to process as needed
+The protocol uses 2-character pieces organized hierarchically, where each piece represents a sub-resource of the previous one. Together, these pieces form the route to a specific resource or operation.
+
+### Separators
+
+The protocol supports three different separators, each with a specific purpose:
+
+- **':' (Colon):** Indicates access to a sub-resource. It means the current resource is not the end of the parse tree.
+- **'?' (Question Mark):** Represents a query. When used, it stops the parse tree at that point, and the level where it stops must implement the query functionality.
+- **' ' (Space):** Indicates that the next block of text is a value for the current level. It stops the parse tree and passes the remaining string to the current level for processing.
 
 ## Load Protocol (Load Server)
 
-### Resources pieces
+### Resource Codes
 
-* 'ID': Identification
-* 'IN': Input
-* 'MD': Mode
-* 'CC': Constant Current (When used in a query means current current)
-* 'CV': Constant Voltage (When used in a query means current voltage)
-* 'CR': Constant Resistance (When used in a query means current resistance)
-* 'CP': Constant Power (When used in a query means current power)
+- **ID:** Identification
+- **IN:** Input
+- **MD:** Mode
+- **CC:** Constant Current (For queries: returns the current value)
+- **CV:** Constant Voltage (For queries: returns the current value)
+- **CR:** Constant Resistance (For queries: returns the current value)
+- **CP:** Constant Power (For queries: returns the current value)
 
-### Identity
+### Identification
 
-'ID?': This query asks the load module to identify itself, providing current identification string
+- **ID?:** Returns the identification string of the load module.
 
 ### Input
 
-'IN?': This query will return if the load has it input activated or not right now, this means if the output terminals are actually enabled
+- **IN?:** Queries whether the input (output terminals) is currently enabled.
+- **IN 0:** Disables the input.
+- **IN 1:** Enables the input.
 
-'IN 0': This command will set input to disabled
-'IN 1': This command will set input to enabled
+### Operating Modes
 
-### Modes
-
-'MD?': This query will return current selected operating mode
-
-'MD:CC': This command will set current mode to be constant current
-'MD:CV': This command will set current mode to be constant voltage
-'MD:CR': This command will set current mode to be constant resistance
-'MD:CP': This command will set current mode to be constant power
+- **MD?:** Returns the currently selected operating mode.
+- **MD:CC:** Sets the mode to constant current.
+- **MD:CV:** Sets the mode to constant voltage.
+- **MD:CR:** Sets the mode to constant resistance.
+- **MD:CP:** Sets the mode to constant power.
 
 ### Levels
 
-'LV:CC?' [A]: This query will return current measured value of current
-'LV:CV?' [V]: This query will return current measured value of voltage
-'LV:CR?' [R]: This query will return current measured value of resistance
-'LV:CP?' [W]: This query will return current measured value of power
+- **LV:CC? [A]:** Returns the measured current in amperes.
+- **LV:CV? [V]:** Returns the measured voltage in volts.
+- **LV:CR? [R]:** Returns the measured resistance in ohms.
+- **LV:CP? [W]:** Returns the measured power in watts.
 
-'LV:CC 0.0000' [A]: This command will set current level of current to be the provided value
-'LV:CV 0.0000' [V]: This command will set current level of voltage to be the provided value
-'LV:CR 0.0000' [R]: This command will set current level of resistance to be the provided value
-'LV:CP 0.0000' [W]: This command will set current level of power to be the provided value
+- **LV:CC 0.0000 [A]:** Sets the current level to the specified value (in amperes).
+- **LV:CV 0.0000 [V]:** Sets the voltage level to the specified value (in volts).
+- **LV:CR 0.0000 [R]:** Sets the resistance level to the specified value (in ohms).
+- **LV:CP 0.0000 [W]:** Sets the power level to the specified value (in watts).
 
-## Panel Protocol (Panel Server)
+## HMI Protocol (HMI Server)
 
-### Resources pieces
+### Resource Codes
 
-'ID': Identification
-'LK': Panel Locking
-'SD': SD card
-'ST': Streamer module
-'RD': Read operation
-'WT': Write operation
+- **ID:** Identification
+- **LK:** Panel Locking
+- **SD:** SD Card
+- **ST:** Streamer Module
+- **RD:** SD Read Operation
+- **WT:** SD Write Operation
 
-### Identity
+### Identification
 
-'ID?': This query asks the panel module to identify itself, providing current identification string
+- **ID?:** Queries the panel module for its identification string.
 
 ### Panel Locking
 
-'LK?': This query will return if front panel is enabled to user to interact or disabled right now
+- **LK?:** Queries whether the front panel is currently locked (user interaction disabled) or unlocked (user interaction enabled).
+- **LK 0:** Unlocks the front panel, preventing user interaction.
+- **LK 1:** Locks the front panel, allowing user interaction.
 
-'LK 0': This command will unlock front panel preventing user to interact with it
-'LK 1': This command will lock front panel allowing user to interact with it
+### SD Card
 
-# SD card
+- **SD?:** Queries if the SD card module is initialized and operational.
 
-'SD?': This query returns if SD card module is initialized and operational
+### SD Card File Operations
 
-# SD card file operations
-
-'SD:RD': This will list all files in sd card,
+- **SD:RD 0:** Lists the first 10 files starting from the specified page.
+- **SD:WT:OP aaaaaaaaa.ext:** Starts writing to a file named `aaaaaaaaa.ext`.
+- **SD:WT:CL:** Stops writing to the file.
