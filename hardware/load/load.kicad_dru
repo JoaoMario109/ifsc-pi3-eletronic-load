@@ -1,0 +1,11 @@
+(version 1)
+(rule custom_clearance_U402
+  (constraint clearance (min 10mil))
+  (condition "A.memberOfFootprint('U402')")
+)
+
+
+(rule custom_annular_width_U501
+  (constraint annular_width (min 10mil))
+  (condition "A.memberOfFootprint('U501')")
+)
