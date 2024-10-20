@@ -126,7 +126,7 @@
 				)
 			)
 		)
-		(symbol "Device:Q_NPN_BCE"
+		(symbol "Device:Q_NPN_ECB"
 			(pin_names
 				(offset 0) hide)
 			(exclude_from_sim no)
@@ -141,7 +141,7 @@
 					(justify left)
 				)
 			)
-			(property "Value" "Q_NPN_BCE"
+			(property "Value" "Q_NPN_ECB"
 				(at 5.08 -1.27 0)
 				(effects
 					(font
@@ -168,7 +168,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "NPN transistor, base/collector/emitter"
+			(property "Description" "NPN transistor, emitter/collector/base"
 				(at 0 0 0)
 				(effects
 					(font
@@ -186,7 +186,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "Q_NPN_BCE_0_1"
+			(symbol "Q_NPN_ECB_0_1"
 				(polyline
 					(pts
 						(xy 0.635 0.635) (xy 2.54 2.54)
@@ -247,11 +247,11 @@
 					)
 				)
 			)
-			(symbol "Q_NPN_BCE_1_1"
-				(pin input line
-					(at -5.08 0 0)
-					(length 5.715)
-					(name "B"
+			(symbol "Q_NPN_ECB_1_1"
+				(pin passive line
+					(at 2.54 -5.08 90)
+					(length 2.54)
+					(name "E"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -285,9 +285,9 @@
 					)
 				)
 				(pin passive line
-					(at 2.54 -5.08 90)
-					(length 2.54)
-					(name "E"
+					(at -5.08 0 0)
+					(length 5.715)
+					(name "B"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2862,79 +2862,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:Q_NPN_BCE")
-		(at 156.21 100.33 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "23e6e24f-e649-49cd-a141-705911bc1008")
-		(property "Reference" "Q501"
-			(at 161.29 99.0599 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "2STC4468"
-			(at 161.29 101.5999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "TerminalBlock:TerminalBlock_bornier-3_P5.08mm"
-			(at 161.29 97.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 156.21 100.33 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "NPN transistor, base/collector/emitter"
-			(at 156.21 100.33 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "3"
-			(uuid "a0b6f5b8-0395-4541-ae90-dcd59be2c48f")
-		)
-		(pin "1"
-			(uuid "6b95d91c-24ac-4229-bc50-93edb98e63cf")
-		)
-		(pin "2"
-			(uuid "8d1a7bbf-b276-45ba-9231-3ad240be4f0e")
-		)
-		(instances
-			(project "main"
-				(path "/03550a2d-ebcf-48cb-96c1-fbf16f6a9151/3e8413c9-25a4-4120-8124-c656fb1a8f3d"
-					(reference "Q501")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R_Small")
 		(at 83.82 107.95 90)
 		(mirror x)
@@ -3374,7 +3301,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_TrianglePad1.0x1.5mm"
+		(property "Footprint" "Load:SolderJumper-2_P1.3mm_Open_TrianglePad1.0x1.5mm"
 			(at 157.48 45.72 0)
 			(effects
 				(font
@@ -3800,17 +3727,17 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:Q_NPN_BCE")
-		(at 207.01 100.33 0)
+		(lib_id "Device:Q_NPN_ECB")
+		(at 156.21 100.33 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "9ea9a29c-2dc1-40d0-8781-4df2766b48a6")
-		(property "Reference" "Q503"
-			(at 212.09 99.0599 0)
+		(uuid "a4aec82a-d11b-4f32-a69e-13841712996d")
+		(property "Reference" "Q504"
+			(at 161.29 99.0599 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3819,7 +3746,7 @@
 			)
 		)
 		(property "Value" "2STC4468"
-			(at 212.09 101.5999 0)
+			(at 161.29 101.5999 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3828,7 +3755,7 @@
 			)
 		)
 		(property "Footprint" "TerminalBlock:TerminalBlock_bornier-3_P5.08mm"
-			(at 212.09 97.79 0)
+			(at 161.29 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3837,7 +3764,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 207.01 100.33 0)
+			(at 156.21 100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3845,8 +3772,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "NPN transistor, base/collector/emitter"
-			(at 207.01 100.33 0)
+		(property "Description" "NPN transistor, emitter/collector/base"
+			(at 156.21 100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3855,18 +3782,18 @@
 			)
 		)
 		(pin "3"
-			(uuid "01fc44a7-75ec-4cd5-a99e-061e70832187")
-		)
-		(pin "1"
-			(uuid "0fa147f9-f919-40f0-ad8d-84c862a36eef")
+			(uuid "de31dfd2-d8f8-4f77-9f3c-fba4b6bc257f")
 		)
 		(pin "2"
-			(uuid "656c2743-8c4a-401c-8e3e-65698eef5920")
+			(uuid "87aa1fa6-820e-4eb3-abe5-a737a263849d")
+		)
+		(pin "1"
+			(uuid "3415bd24-9a68-4bc3-bf18-7ad10f3ea9be")
 		)
 		(instances
-			(project "main"
+			(project ""
 				(path "/03550a2d-ebcf-48cb-96c1-fbf16f6a9151/3e8413c9-25a4-4120-8124-c656fb1a8f3d"
-					(reference "Q503")
+					(reference "Q504")
 					(unit 1)
 				)
 			)
@@ -4067,6 +3994,79 @@
 			(project "main"
 				(path "/03550a2d-ebcf-48cb-96c1-fbf16f6a9151/3e8413c9-25a4-4120-8124-c656fb1a8f3d"
 					(reference "#PWR0501")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:Q_NPN_ECB")
+		(at 207.01 100.33 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e707900b-a352-4254-9c7f-57d69d95bba8")
+		(property "Reference" "Q501"
+			(at 212.09 99.0599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "2STC4468"
+			(at 212.09 101.5999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "TerminalBlock:TerminalBlock_bornier-3_P5.08mm"
+			(at 212.09 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 207.01 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "NPN transistor, emitter/collector/base"
+			(at 207.01 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "dcdd1414-92c4-4361-8a7e-4e20f16a89ac")
+		)
+		(pin "2"
+			(uuid "1278357c-32fa-4b3a-859c-6444933cd8ef")
+		)
+		(pin "1"
+			(uuid "12bd0306-07f1-4ff3-a239-bd11a6549e59")
+		)
+		(instances
+			(project "load"
+				(path "/03550a2d-ebcf-48cb-96c1-fbf16f6a9151/3e8413c9-25a4-4120-8124-c656fb1a8f3d"
+					(reference "Q501")
 					(unit 1)
 				)
 			)
