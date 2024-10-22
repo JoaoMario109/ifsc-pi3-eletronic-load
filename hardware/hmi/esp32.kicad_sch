@@ -1199,10 +1199,6 @@
 		(uuid "75d040c8-3902-4722-acba-08ba322c37fd")
 	)
 	(no_connect
-		(at 158.75 120.65)
-		(uuid "7b46d6b8-fd24-48e9-a161-936ba8f4c236")
-	)
-	(no_connect
 		(at 105.41 123.19)
 		(uuid "c5f6d63d-1f63-42ae-9e3e-a1c8fb76bd8b")
 	)
@@ -1221,6 +1217,10 @@
 	(no_connect
 		(at 105.41 130.81)
 		(uuid "db828086-225b-4e10-a463-917b8718ddc0")
+	)
+	(no_connect
+		(at 158.75 111.76)
+		(uuid "e23d8949-7e9f-43b3-a62b-3fec3fe71594")
 	)
 	(wire
 		(pts
@@ -1251,6 +1251,16 @@
 			(type default)
 		)
 		(uuid "177e1d8e-07ab-4e1b-8ae5-6051ea33b79e")
+	)
+	(wire
+		(pts
+			(xy 158.75 130.81) (xy 165.1 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1d9ef433-1a1f-4744-90c7-39b935e70e2b")
 	)
 	(wire
 		(pts
@@ -1384,7 +1394,7 @@
 	)
 	(wire
 		(pts
-			(xy 158.75 111.76) (xy 166.37 111.76)
+			(xy 158.75 120.65) (xy 166.37 120.65)
 		)
 		(stroke
 			(width 0)
@@ -1616,7 +1626,7 @@
 	)
 	(hierarchical_label "LCD_RST"
 		(shape input)
-		(at 166.37 111.76 0)
+		(at 166.37 120.65 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1781,6 +1791,18 @@
 			(justify left)
 		)
 		(uuid "e48793fe-c20b-4154-9ed5-45503e62deaf")
+	)
+	(hierarchical_label "LCD_DC"
+		(shape input)
+		(at 165.1 130.81 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ef8749e3-e4a2-4d86-bc5c-fcdb33ae009b")
 	)
 	(hierarchical_label "BTN_CC"
 		(shape input)
