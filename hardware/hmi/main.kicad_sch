@@ -858,6 +858,16 @@
 	)
 	(wire
 		(pts
+			(xy 137.16 130.81) (xy 138.43 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "31b78ec0-25f9-49d3-a69b-d8ca9ba26958")
+	)
+	(wire
+		(pts
 			(xy 127 52.07) (xy 132.08 52.07)
 		)
 		(stroke
@@ -1218,6 +1228,16 @@
 	)
 	(wire
 		(pts
+			(xy 138.43 153.67) (xy 151.13 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9b7f6c28-33c6-433f-a6b2-1da519381201")
+	)
+	(wire
+		(pts
 			(xy 140.97 128.27) (xy 137.16 128.27)
 		)
 		(stroke
@@ -1355,6 +1375,16 @@
 			(type default)
 		)
 		(uuid "ef531854-b902-4f3d-91d7-1f67a5311a2c")
+	)
+	(wire
+		(pts
+			(xy 138.43 130.81) (xy 138.43 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f69e5ed2-df71-42fb-b7c4-0860b363301e")
 	)
 	(hierarchical_label "LOAD_SDA"
 		(shape input)
@@ -2490,7 +2520,7 @@
 	)
 	(sheet
 		(at 114.3 80.01)
-		(size 22.86 50.8)
+		(size 22.86 53.34)
 		(fields_autoplaced yes)
 		(stroke
 			(width 0.1524)
@@ -2510,7 +2540,7 @@
 			)
 		)
 		(property "Sheetfile" "esp32.kicad_sch"
-			(at 114.3 131.3946 0)
+			(at 114.3 133.9346 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2698,6 +2728,16 @@
 			)
 			(uuid "4c7c2c5d-fa34-42e2-90b2-47764ccee45a")
 		)
+		(pin "LCD_DC" input
+			(at 137.16 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "1e04b7d4-0728-4338-89f3-3353d6f55b59")
+		)
 		(instances
 			(project "main"
 				(path "/52572b82-7195-4cd7-87cc-e81f0a4f89ba"
@@ -2796,7 +2836,7 @@
 	)
 	(sheet
 		(at 151.13 134.62)
-		(size 12.7 19.05)
+		(size 12.7 22.86)
 		(fields_autoplaced yes)
 		(stroke
 			(width 0.1524)
@@ -2816,7 +2856,7 @@
 			)
 		)
 		(property "Sheetfile" "display.kicad_sch"
-			(at 151.13 154.2546 0)
+			(at 151.13 158.0646 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2873,6 +2913,16 @@
 				(justify left)
 			)
 			(uuid "3edf713e-5684-4248-a687-84eaaaf22d5a")
+		)
+		(pin "DC" input
+			(at 151.13 153.67 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "e9ee6d33-6d1f-4c5b-bdbf-fb0882d6b499")
 		)
 		(instances
 			(project "main"
