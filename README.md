@@ -38,9 +38,6 @@
   </ol>
 </details>
 
-Here's an improved version of your text:
-
----
 
 <!-- ABOUT THE PROJECT -->
 <div id="about-the-project"></div>
