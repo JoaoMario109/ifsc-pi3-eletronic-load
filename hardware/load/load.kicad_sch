@@ -2349,6 +2349,16 @@
 	)
 	(wire
 		(pts
+			(xy 200.66 111.76) (xy 129.54 111.76)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "693374e1-e485-42b4-a68d-5fd23a32f0d5")
+	)
+	(wire
+		(pts
 			(xy 55.88 78.74) (xy 96.52 78.74)
 		)
 		(stroke
@@ -2409,6 +2419,16 @@
 	)
 	(wire
 		(pts
+			(xy 129.54 111.76) (xy 129.54 105.41)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "758b215c-77b8-4809-8e2d-ace0876e5f20")
+	)
+	(wire
+		(pts
 			(xy 190.5 125.73) (xy 190.5 128.27)
 		)
 		(stroke
@@ -2426,6 +2446,16 @@
 			(type default)
 		)
 		(uuid "77f9c367-1920-4e79-a6e9-e96dc64ed217")
+	)
+	(wire
+		(pts
+			(xy 127 105.41) (xy 129.54 105.41)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7fa63718-aacd-4ae7-8a23-14b18be7c860")
 	)
 	(wire
 		(pts
@@ -5194,6 +5224,16 @@
 			)
 			(uuid "4b037879-c92c-4133-9546-305914b45ed9")
 		)
+		(pin "enable_load" input
+			(at 200.66 111.76 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "9795b568-8332-4225-aa88-ae63d4e10ed6")
+		)
 		(instances
 			(project "load"
 				(path "/03550a2d-ebcf-48cb-96c1-fbf16f6a9151"
@@ -5409,6 +5449,16 @@
 				(justify right)
 			)
 			(uuid "df07af16-c66a-4252-9354-f2fed191d686")
+		)
+		(pin "enable_load" input
+			(at 127 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "e647f576-dd22-45fd-8b26-738c18d48f02")
 		)
 		(instances
 			(project "load"
