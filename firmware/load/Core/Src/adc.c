@@ -9,18 +9,16 @@
 
 /**
  * @brief ADC correction coefficients
- *  Linearization equation: 
+ *  Linearization equation:
  *  y = ADC_CORRECTION_COEFFICIENTS[0] + ADC_CORRECTION_COEFFICIENTS[1] * x
- * 
+ *
  */
-const static float ADC_CORRECTION_COEFFICIENTS[ADC_CHANNELS_SIZE][2] = {
-	{-0.0014958, 4.659992f},
-	{-0.133195, 10.16618f},
-	{0.0330273983f, 2.3719258767660f},
-	{0.0f, 0.0f}
-};
+static const float ADC_CORRECTION_COEFFICIENTS[ADC_CHANNELS_SIZE][2] = {
+	{0.0, 1.0f},
+	{0.0, 1.0f},
+	{0.0f, 1.0f}};
 
-const static uint8_t ADC_CHANNELS[] = {
+static const uint8_t ADC_CHANNELS[] = {
 	ADS111X_MUX_0_GND,
 	ADS111X_MUX_1_GND,
 	ADS111X_MUX_2_GND,
@@ -29,14 +27,13 @@ const static uint8_t ADC_CHANNELS[] = {
 
 /**
  * @brief ADC structure
- * 
+ *
  */
 adc_t adc;
 
-
 /**
  * @brief Initialize ADC
- * 
+ *
  * @param hi2c I2C handle
  * @return HAL_StatusTypeDef HAL status
  */
@@ -50,8 +47,26 @@ HAL_StatusTypeDef adc_init(I2C_HandleTypeDef *hi2c)
 		return HAL_ERROR;
 	}
 
+	if (ads111x_init_desc(hi2c, ADS111X_ADDR_GND) != HAL_OK)
+	{
+		LOG_ERROR("ads111x_init_desc");
+		return HAL_ERROR;
+	}
+
 	/* Save I2C handler */
 	adc.hi2c = hi2c;
+
+	/* Set adc ready queue to 1 sample */
+	if (ads111x_set_comp_queue(hi2c, ADS111X_COMP_QUEUE_1) != HAL_OK)
+	{
+		LOG_ERROR("ads111x_set_comp_queue");
+	}
+
+	/* Enable conversion ready */
+	if (ads111x_enable_conv_ready(hi2c, 1) != HAL_OK)
+	{
+		LOG_ERROR("ads111x_enable_conv_ready");
+	}
 
 	/* Initialize in single mode */
 	if (ads111x_set_mode(hi2c, ADS111X_MODE_SINGLE_SHOT) != HAL_OK)
@@ -96,19 +111,17 @@ HAL_StatusTypeDef adc_init(I2C_HandleTypeDef *hi2c)
 	LOG_INFO(" OK.\n");
 	/* Adc initialized correctly */
 	return HAL_OK;
-
 }
 
 /**
  * @brief Set ADC channel gain
- * 
+ *
  */
 HAL_StatusTypeDef adc_set_gain(adc_channels_t channel, uint16_t value)
 {
 	const uint16_t LOW_TRESHOLD = (ADS111X_MAX_VALUE / 2);
 	const uint16_t HIGH_TRESHOLD = ADS111X_MAX_VALUE;
 	const uint16_t HYSTERESIS = ADS111X_MAX_VALUE / 50;
-	
 
 	/* Check if channel is valid */
 	if (channel >= ADC_CHANNELS_SIZE)
@@ -122,15 +135,13 @@ HAL_StatusTypeDef adc_set_gain(adc_channels_t channel, uint16_t value)
 	if (value > (ADS111X_MAX_VALUE - HYSTERESIS) && gain != ADS111X_GAIN_4V096)
 	{
 		gain--;
-		printf("Setting gain of channel %d: %f\n",channel , ads111x_gain_values[gain]);
+		LOG_INFO("Setting gain of channel %d: %f\n", channel, ads111x_gain_values[gain]);
 	}
 	else if (value < (LOW_TRESHOLD - HYSTERESIS) && gain != ADS111X_GAIN_0V256)
 	{
 		gain++;
-		printf("Setting gain of channel %d: %f\n",channel , ads111x_gain_values[gain]);
+		LOG_INFO("Setting gain of channel %d: %f\n", channel, ads111x_gain_values[gain]);
 	}
-
-
 
 	/* Set gain */
 	adc.channels[channel].gain = gain;
@@ -140,14 +151,14 @@ HAL_StatusTypeDef adc_set_gain(adc_channels_t channel, uint16_t value)
 
 /**
  * @brief Measure a channel
- * 
+ *
  * @return HAL_StatusTypeDef HAL status
  */
 HAL_StatusTypeDef adc_measure(void)
 {
 	/* If conversion available */
 	uint8_t busy;
-	
+
 	if (ads111x_is_busy(adc.hi2c, &busy) != HAL_OK)
 	{
 		LOG_ERROR("ads111x_failed reading busy flag");
@@ -156,7 +167,7 @@ HAL_StatusTypeDef adc_measure(void)
 
 	if (busy)
 	{
-		printf("busy\n");
+		LOG_WARN("Aborting adc measurement because adc is busy\n");
 		return HAL_OK;
 	}
 
@@ -167,6 +178,7 @@ HAL_StatusTypeDef adc_measure(void)
 		LOG_ERROR("ads111x_get_value");
 		return HAL_ERROR;
 	}
+
 	/* Convert to voltage */
 	float voltage = (float)value * (ads111x_gain_values[adc.channels[adc.last_channel_index].gain] / ADS111X_MAX_VALUE);
 
@@ -209,9 +221,9 @@ HAL_StatusTypeDef adc_measure(void)
 	return HAL_OK;
 }
 
-/** 
+/**
  * @brief Calculate average of all channels
-*/
+ */
 void adc_calculate_average(void)
 {
 	/* Iterate over channels */
@@ -222,10 +234,10 @@ void adc_calculate_average(void)
 		{
 			continue;
 		}
-		
+
 		/* Calculate average */
 		adc.channels[i].value.avg = adc.channels[i].value.sum / adc.channels[i].value.samples;
-		
+
 		/* Reset sum and samples */
 		adc.channels[i].value.sum = 0;
 		adc.channels[i].value.samples = 0;
@@ -234,7 +246,7 @@ void adc_calculate_average(void)
 
 /**
  * @brief Get channel value
- * 
+ *
  * @param channel Channel
  * @return float Value
  */
@@ -254,12 +266,11 @@ float adc_get_value(adc_channels_t channel)
 
 	/* Get value */
 	return value;
-
 }
 
 /**
  * @brief ADC all channels measured
- * 
+ *
  */
 uint8_t adc_all_channels_measured(void)
 {

@@ -21,8 +21,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
 #include <mcp4725.h>
 #include <ads111x.h>
+#include <adc.h>
+#include <utils.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -84,6 +87,16 @@ void error_handler(void)
 		HAL_Delay(100);
 	}
 }
+
+volatile uint32_t adc_ready = 0;
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if (GPIO_Pin == ADC_ALERT_Pin)
+	{
+		adc_ready = 1;
+	}
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -131,43 +144,47 @@ int main(void)
 		error_handler();
 	}
 
-	if (ads111x_init_desc(&hi2c2, ADS111X_ADDR_GND) != HAL_OK)
-	{
-		error_handler();
-	}
-
-
-
+	adc_init(&hi2c2);
 
 	// Set output voltage on MCP4725
 	float vdd = 3.3;			 // Reference voltage
 	float output_voltage = 1.65; // Desired output voltage (50% of VDD)
-  HAL_GPIO_WritePin(ENABLE_LOAD_GPIO_Port, ENABLE_LOAD_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(ENABLE_LOAD_GPIO_Port, ENABLE_LOAD_Pin, GPIO_PIN_SET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		uint8_t busy;
-		ads111x_is_busy(&hi2c2, &busy);
 
-		if (!busy)
+		/* Measure adc */
+		if (adc_ready)
 		{
-			int16_t value;
-			ads111x_get_value(&hi2c2, &value);
-			ads111x_start_conversion(&hi2c2);
+			if (adc_measure() != HAL_OK)
+			{
+				LOG_ERROR("Error reading ADC\n");
+			}
+			HAL_GPIO_TogglePin(EXTERNAL_TRIGGER_OUT_GPIO_Port, EXTERNAL_TRIGGER_OUT_Pin);
+			HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+			HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+			adc_ready = 0;
 		}
-		HAL_GPIO_TogglePin(EXTERNAL_TRIGGER_OUT_GPIO_Port, EXTERNAL_TRIGGER_OUT_Pin);
-		HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
-		HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-		mcp4725_set_voltage(&dac, vdd, output_voltage, false);
-		output_voltage += 0.00005f;
-		if (output_voltage > 1.9f)
+		static uint32_t last_dac_update = 0;
+		if (HAL_GetTick() >= last_dac_update)
 		{
-			output_voltage = 1.0f;
+
+			last_dac_update = HAL_GetTick() + 3000;
+			adc_calculate_average();
+			printf("CH1: %f, CH2: %f, CH3: %f\n",
+				   adc_get_value(ADC_INPUT_VOLTAGE),
+				   adc_get_value(ADC_INPUT_CURRENT),
+				   adc_get_value(ADC_INPUT_VOLTAGE_KELVIN));
+			// Set output voltage on MCP4725
+			output_voltage += 0.05f;
+			if (output_voltage >= 0.25f)
+				output_voltage = 0.00f;
+			mcp4725_set_voltage(&dac, vdd, output_voltage, false);
 		}
-		HAL_Delay(1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
