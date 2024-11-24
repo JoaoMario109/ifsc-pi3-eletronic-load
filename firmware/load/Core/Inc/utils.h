@@ -21,7 +21,7 @@
 	}
 	#define LOG_ERROR(...)       \
 	{                      \
-		printf("ERROR: at line %d in function %s", __LINE__, __func__); \
+		printf("ERROR: at line %d in function %s ", __LINE__, __func__); \
 		printf(__VA_ARGS__);         \
 		printf("\n");       \
 	}
