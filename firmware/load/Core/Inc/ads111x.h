@@ -320,5 +320,12 @@ HAL_StatusTypeDef ads111x_get_comp_high_thresh(I2C_HandleTypeDef *hi2c, int16_t 
  */
 HAL_StatusTypeDef ads111x_set_comp_high_thresh(I2C_HandleTypeDef *hi2c, int16_t th);
 
+/**
+ * @brief Enable or disable the comparator on the ADS111X device.
+ * @param hi2c Pointer to an I2C_HandleTypeDef structure.
+ * @param state The state to set (0 = disable, 1 = enable).
+ * @return HAL status indicating the result of the operation.
+ */
+HAL_StatusTypeDef ads111x_enable_conv_ready(I2C_HandleTypeDef *dev, uint32_t state);
 
 #endif /* __ADS111X_H__ */

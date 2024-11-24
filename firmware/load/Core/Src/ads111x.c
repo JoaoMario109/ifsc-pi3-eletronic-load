@@ -7,49 +7,57 @@
  *
  */
 
-
 #include <ads111x.h>
 #include "utils.h"
 
 #define REG_CONVERSION 0
-#define REG_CONFIG     1
-#define REG_THRESH_L   2
-#define REG_THRESH_H   3
+#define REG_CONFIG 1
+#define REG_THRESH_L 2
+#define REG_THRESH_H 3
 
-#define COMP_QUE_OFFSET  1
-#define COMP_QUE_MASK    0x03
-#define COMP_LAT_OFFSET  2
-#define COMP_LAT_MASK    0x01
-#define COMP_POL_OFFSET  3
-#define COMP_POL_MASK    0x01
+#define COMP_QUE_OFFSET 1
+#define COMP_QUE_MASK 0x03
+#define COMP_LAT_OFFSET 2
+#define COMP_LAT_MASK 0x01
+#define COMP_POL_OFFSET 3
+#define COMP_POL_MASK 0x01
 #define COMP_MODE_OFFSET 4
-#define COMP_MODE_MASK   0x01
-#define DR_OFFSET        5
-#define DR_MASK          0x07
-#define MODE_OFFSET      8
-#define MODE_MASK        0x01
-#define PGA_OFFSET       9
-#define PGA_MASK         0x07
-#define MUX_OFFSET       12
-#define MUX_MASK         0x07
-#define OS_OFFSET        15
-#define OS_MASK          0x01
+#define COMP_MODE_MASK 0x01
+#define DR_OFFSET 5
+#define DR_MASK 0x07
+#define MODE_OFFSET 8
+#define MODE_MASK 0x01
+#define PGA_OFFSET 9
+#define PGA_MASK 0x07
+#define MUX_OFFSET 12
+#define MUX_MASK 0x07
+#define OS_OFFSET 15
+#define OS_MASK 0x01
 
 /* For STM32 */
-#define CHECK(x) do { HAL_StatusTypeDef __; if ((__ = x) != HAL_OK) return __; } while (0)
-#define CHECK_ARG(VAL) do { if (!(VAL)) return HAL_ERROR; } while (0)
-
+#define CHECK(x)                \
+	do                          \
+	{                           \
+		HAL_StatusTypeDef __;   \
+		if ((__ = x) != HAL_OK) \
+			return __;          \
+	} while (0)
+#define CHECK_ARG(VAL)        \
+	do                        \
+	{                         \
+		if (!(VAL))           \
+			return HAL_ERROR; \
+	} while (0)
 
 const float ads111x_gain_values[] = {
-	[ADS111X_GAIN_6V144]   = 6.144,
-	[ADS111X_GAIN_4V096]   = 4.096,
-	[ADS111X_GAIN_2V048]   = 2.048,
-	[ADS111X_GAIN_1V024]   = 1.024,
-	[ADS111X_GAIN_0V512]   = 0.512,
-	[ADS111X_GAIN_0V256]   = 0.256,
+	[ADS111X_GAIN_6V144] = 6.144,
+	[ADS111X_GAIN_4V096] = 4.096,
+	[ADS111X_GAIN_2V048] = 2.048,
+	[ADS111X_GAIN_1V024] = 1.024,
+	[ADS111X_GAIN_0V512] = 0.512,
+	[ADS111X_GAIN_0V256] = 0.256,
 	[ADS111X_GAIN_0V256_2] = 0.256,
-	[ADS111X_GAIN_0V256_3] = 0.256
-};
+	[ADS111X_GAIN_0V256_3] = 0.256};
 
 /**
  * Private functions
@@ -116,13 +124,13 @@ static HAL_StatusTypeDef write_conf_bits(I2C_HandleTypeDef *hi2c, uint16_t val, 
 
 /**
  * @brief read_reg for STM32
- * 
+ *
  */
 static HAL_StatusTypeDef read_reg(I2C_HandleTypeDef *hi2c, uint8_t reg, uint16_t *val)
 {
 	uint8_t buf[2];
 	HAL_StatusTypeDef res;
-	if ((res = HAL_I2C_Mem_Read(hi2c, (uint16_t) (ADS111X_ADDR_GND << 1), reg, 1, buf, 2, 1000)) != HAL_OK)
+	if ((res = HAL_I2C_Mem_Read(hi2c, (uint16_t)(ADS111X_ADDR_GND << 1), reg, 1, buf, 2, 1000)) != HAL_OK)
 	{
 		LOG_ERROR("Could not read from register 0x%02x", reg);
 		return res;
@@ -134,13 +142,13 @@ static HAL_StatusTypeDef read_reg(I2C_HandleTypeDef *hi2c, uint8_t reg, uint16_t
 
 /**
  * @brief write_reg for STM32
- * 
+ *
  */
 static HAL_StatusTypeDef write_reg(I2C_HandleTypeDef *hi2c, uint8_t reg, uint16_t val)
 {
-	uint8_t buf[2] = { val >> 8, val };
+	uint8_t buf[2] = {val >> 8, val};
 	HAL_StatusTypeDef res;
-	if ((res = HAL_I2C_Mem_Write(hi2c, (uint16_t) (ADS111X_ADDR_GND << 1), reg, 1, buf, 2, 1000)) != HAL_OK)
+	if ((res = HAL_I2C_Mem_Write(hi2c, (uint16_t)(ADS111X_ADDR_GND << 1), reg, 1, buf, 2, 1000)) != HAL_OK)
 	{
 		LOG_ERROR("Could not write 0x%04x to register 0x%02x", val, reg);
 		return res;
@@ -151,10 +159,10 @@ static HAL_StatusTypeDef write_reg(I2C_HandleTypeDef *hi2c, uint8_t reg, uint16_
 
 /**
  * @brief read_conf_bits for STM32
- * 
+ *
  */
 static HAL_StatusTypeDef read_conf_bits(I2C_HandleTypeDef *hi2c, uint8_t offs, uint16_t mask,
-		uint16_t *bits)
+										uint16_t *bits)
 {
 	CHECK_ARG(hi2c);
 
@@ -169,10 +177,10 @@ static HAL_StatusTypeDef read_conf_bits(I2C_HandleTypeDef *hi2c, uint8_t offs, u
 
 /**
  * @brief write_conf_bits for STM32
- * 
+ *
  */
 static HAL_StatusTypeDef write_conf_bits(I2C_HandleTypeDef *hi2c, uint16_t val, uint8_t offs,
-		uint16_t mask)
+										 uint16_t mask)
 {
 	CHECK_ARG(hi2c);
 
@@ -184,26 +192,26 @@ static HAL_StatusTypeDef write_conf_bits(I2C_HandleTypeDef *hi2c, uint16_t val, 
 	return HAL_OK;
 }
 
-#define READ_CONFIG(OFFS, MASK, VAR) do { \
-		CHECK_ARG(VAR); \
-		uint16_t bits; \
+#define READ_CONFIG(OFFS, MASK, VAR)                    \
+	do                                                  \
+	{                                                   \
+		CHECK_ARG(VAR);                                 \
+		uint16_t bits;                                  \
 		CHECK(read_conf_bits(hi2c, OFFS, MASK, &bits)); \
-		*VAR = bits; \
-		return HAL_OK; \
-	} while(0)
-
+		*VAR = bits;                                    \
+		return HAL_OK;                                  \
+	} while (0)
 
 ///////////////////////////////////////////////////////////////////////////////
 /**
  * @brief Initialize device descriptor
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_init_desc(I2C_HandleTypeDef *hi2c, uint8_t addr)
 {
 	CHECK_ARG(hi2c);
 
-	if (addr != ADS111X_ADDR_GND && addr != ADS111X_ADDR_VCC
-			&& addr != ADS111X_ADDR_SDA && addr != ADS111X_ADDR_SCL)
+	if (addr != ADS111X_ADDR_GND && addr != ADS111X_ADDR_VCC && addr != ADS111X_ADDR_SDA && addr != ADS111X_ADDR_SCL)
 	{
 		LOG_ERROR("Invalid I2C address");
 		return HAL_ERROR;
@@ -214,7 +222,7 @@ HAL_StatusTypeDef ads111x_init_desc(I2C_HandleTypeDef *hi2c, uint8_t addr)
 
 /**
  * @brief Get device operational status
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_is_busy(I2C_HandleTypeDef *hi2c, uint8_t *busy)
 {
@@ -229,7 +237,7 @@ HAL_StatusTypeDef ads111x_is_busy(I2C_HandleTypeDef *hi2c, uint8_t *busy)
 
 /**
  * @brief Begin a single conversion
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_start_conversion(I2C_HandleTypeDef *hi2c)
 {
@@ -238,7 +246,7 @@ HAL_StatusTypeDef ads111x_start_conversion(I2C_HandleTypeDef *hi2c)
 
 /**
  * @brief Read last conversion result
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_get_value(I2C_HandleTypeDef *hi2c, int16_t *value)
 {
@@ -251,7 +259,7 @@ HAL_StatusTypeDef ads111x_get_value(I2C_HandleTypeDef *hi2c, int16_t *value)
 
 /**
  * @brief Read last conversion result for ADS101x
- * 
+ *
  */
 HAL_StatusTypeDef ads101x_get_value(I2C_HandleTypeDef *hi2c, int16_t *value)
 {
@@ -270,7 +278,7 @@ HAL_StatusTypeDef ads101x_get_value(I2C_HandleTypeDef *hi2c, int16_t *value)
 
 /**
  * @brief Read the programmable gain amplifier configuration
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_get_gain(I2C_HandleTypeDef *hi2c, ads111x_gain_t *gain)
 {
@@ -279,7 +287,7 @@ HAL_StatusTypeDef ads111x_get_gain(I2C_HandleTypeDef *hi2c, ads111x_gain_t *gain
 
 /**
  * @brief Configure the programmable gain amplifier
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_set_gain(I2C_HandleTypeDef *hi2c, ads111x_gain_t gain)
 {
@@ -288,7 +296,7 @@ HAL_StatusTypeDef ads111x_set_gain(I2C_HandleTypeDef *hi2c, ads111x_gain_t gain)
 
 /**
  * @brief Read the input multiplexer configuration
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_get_input_mux(I2C_HandleTypeDef *hi2c, ads111x_mux_t *mux)
 {
@@ -297,7 +305,7 @@ HAL_StatusTypeDef ads111x_get_input_mux(I2C_HandleTypeDef *hi2c, ads111x_mux_t *
 
 /**
  * @brief Configure the input multiplexer configuration
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_set_input_mux(I2C_HandleTypeDef *hi2c, ads111x_mux_t mux)
 {
@@ -306,7 +314,7 @@ HAL_StatusTypeDef ads111x_set_input_mux(I2C_HandleTypeDef *hi2c, ads111x_mux_t m
 
 /**
  * @brief Read the device operating mode
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_get_mode(I2C_HandleTypeDef *hi2c, ads111x_mode_t *mode)
 {
@@ -315,7 +323,7 @@ HAL_StatusTypeDef ads111x_get_mode(I2C_HandleTypeDef *hi2c, ads111x_mode_t *mode
 
 /**
  * @brief Set the device operating mode
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_set_mode(I2C_HandleTypeDef *hi2c, ads111x_mode_t mode)
 {
@@ -324,7 +332,7 @@ HAL_StatusTypeDef ads111x_set_mode(I2C_HandleTypeDef *hi2c, ads111x_mode_t mode)
 
 /**
  * @brief Read the data rate
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_get_data_rate(I2C_HandleTypeDef *hi2c, ads111x_data_rate_t *rate)
 {
@@ -333,7 +341,7 @@ HAL_StatusTypeDef ads111x_get_data_rate(I2C_HandleTypeDef *hi2c, ads111x_data_ra
 
 /**
  * @brief Configure the data rate
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_set_data_rate(I2C_HandleTypeDef *hi2c, ads111x_data_rate_t rate)
 {
@@ -342,7 +350,7 @@ HAL_StatusTypeDef ads111x_set_data_rate(I2C_HandleTypeDef *hi2c, ads111x_data_ra
 
 /**
  * @brief Get comparator mode
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_get_comp_mode(I2C_HandleTypeDef *hi2c, ads111x_comp_mode_t *mode)
 {
@@ -351,7 +359,7 @@ HAL_StatusTypeDef ads111x_get_comp_mode(I2C_HandleTypeDef *hi2c, ads111x_comp_mo
 
 /**
  * @brief Set comparator mode
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_set_comp_mode(I2C_HandleTypeDef *hi2c, ads111x_comp_mode_t mode)
 {
@@ -360,7 +368,7 @@ HAL_StatusTypeDef ads111x_set_comp_mode(I2C_HandleTypeDef *hi2c, ads111x_comp_mo
 
 /**
  * @brief Get comparator polarity
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_get_comp_polarity(I2C_HandleTypeDef *hi2c, ads111x_comp_polarity_t *polarity)
 {
@@ -369,7 +377,7 @@ HAL_StatusTypeDef ads111x_get_comp_polarity(I2C_HandleTypeDef *hi2c, ads111x_com
 
 /**
  * @brief Set comparator polarity
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_set_comp_polarity(I2C_HandleTypeDef *hi2c, ads111x_comp_polarity_t polarity)
 {
@@ -378,7 +386,7 @@ HAL_StatusTypeDef ads111x_set_comp_polarity(I2C_HandleTypeDef *hi2c, ads111x_com
 
 /**
  * @brief Get comparator latch
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_get_comp_latch(I2C_HandleTypeDef *hi2c, ads111x_comp_latch_t *latch)
 {
@@ -387,7 +395,7 @@ HAL_StatusTypeDef ads111x_get_comp_latch(I2C_HandleTypeDef *hi2c, ads111x_comp_l
 
 /**
  * @brief Set comparator latch
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_set_comp_latch(I2C_HandleTypeDef *hi2c, ads111x_comp_latch_t latch)
 {
@@ -396,7 +404,7 @@ HAL_StatusTypeDef ads111x_set_comp_latch(I2C_HandleTypeDef *hi2c, ads111x_comp_l
 
 /**
  * @brief Get comparator queue
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_get_comp_queue(I2C_HandleTypeDef *hi2c, ads111x_comp_queue_t *queue)
 {
@@ -405,7 +413,7 @@ HAL_StatusTypeDef ads111x_get_comp_queue(I2C_HandleTypeDef *hi2c, ads111x_comp_q
 
 /**
  * @brief Set comparator queue
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_set_comp_queue(I2C_HandleTypeDef *hi2c, ads111x_comp_queue_t queue)
 {
@@ -414,7 +422,7 @@ HAL_StatusTypeDef ads111x_set_comp_queue(I2C_HandleTypeDef *hi2c, ads111x_comp_q
 
 /**
  * @brief Get comparator low threshold
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_get_comp_low_thresh(I2C_HandleTypeDef *hi2c, int16_t *th)
 {
@@ -427,7 +435,7 @@ HAL_StatusTypeDef ads111x_get_comp_low_thresh(I2C_HandleTypeDef *hi2c, int16_t *
 
 /**
  * @brief Set comparator low threshold
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_set_comp_low_thresh(I2C_HandleTypeDef *hi2c, int16_t th)
 {
@@ -440,7 +448,7 @@ HAL_StatusTypeDef ads111x_set_comp_low_thresh(I2C_HandleTypeDef *hi2c, int16_t t
 
 /**
  * @brief Get comparator high threshold
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_get_comp_high_thresh(I2C_HandleTypeDef *hi2c, int16_t *th)
 {
@@ -453,13 +461,26 @@ HAL_StatusTypeDef ads111x_get_comp_high_thresh(I2C_HandleTypeDef *hi2c, int16_t 
 
 /**
  * @brief Set comparator high threshold
- * 
+ *
  */
 HAL_StatusTypeDef ads111x_set_comp_high_thresh(I2C_HandleTypeDef *hi2c, int16_t th)
 {
 	CHECK_ARG(hi2c);
 
 	CHECK(write_reg(hi2c, REG_THRESH_H, th));
+
+	return HAL_OK;
+}
+
+HAL_StatusTypeDef ads111x_enable_conv_ready(I2C_HandleTypeDef *dev, uint32_t state)
+{
+	/* Check device */
+	CHECK_ARG(dev);
+
+	/* Set the most significant bit of high tresh */
+	CHECK(write_reg(dev, REG_THRESH_H, state ? 0x8000 : 0x0000));
+	/* Set the most significant bit of low tresh */
+	CHECK(write_reg(dev, REG_THRESH_L, state ? 0x0000 : 0x0000));
 
 	return HAL_OK;
 }
