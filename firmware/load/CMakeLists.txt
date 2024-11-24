@@ -48,6 +48,8 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
+    Core/Src/adc.c
+    Core/Src/uart.c
     Core/Src/mcp4725.c
     Core/Src/ads111x.c
 )
@@ -75,4 +77,15 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${CMAKE_SOURCE_DIR}/STM32F103C8TX_FLASH_FIX.ld
     ${CMAKE_SOURCE_DIR}/STM32F103C8Tx_FLASH.ld
+)
+
+# Add project symbols (macros)
+target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
+    # Add user defined symbols
+    _printf_float
+)
+
+# Add linker options
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE
+    -u _printf_float
 )
