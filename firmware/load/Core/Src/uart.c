@@ -35,9 +35,7 @@
 		.next = NEXT,                                 \
 	}
 
-volatile uint8_t data_uart[UART_BUFFER_SIZE];
-volatile uint8_t data_received_flag = 0;
-
+uint8_t data_uart[UART_BUFFER_SIZE];
 
 typedef enum
 {
@@ -82,8 +80,9 @@ typedef struct nodes_t
 } nodes_t;
 
 static UART_HandleTypeDef *huart;
+static mcp4725_t *dac;
 static uint32_t echo_command = 0;
-
+static uint32_t print_measurements = 0;
 
 command_t get_command(parser_t *parser);
 int get_command_int(parser_t *parser, command_t *command);
@@ -91,31 +90,27 @@ float get_command_float(parser_t *parser, command_t *command);
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart2)
 {
-	data_received_flag = 1;
-
 	// Restart UART reception
 	HAL_UART_Receive_DMA(huart, data_uart, UART_BUFFER_SIZE);
-	LOG_INFO("data");
 }
 
-void uart_init(UART_HandleTypeDef *huart_rx)
+void uart_init(UART_HandleTypeDef *huart_rx, mcp4725_t *dac_handler)
 {
 	LOG_INFO("Initializing UART\n");
 	// Start UART reception in interrupt mode
-	while(HAL_UART_Receive_DMA(huart_rx, data_uart, UART_BUFFER_SIZE) != HAL_OK)
+	while (HAL_UART_Receive_DMA(huart_rx, data_uart, UART_BUFFER_SIZE) != HAL_OK)
 	{
 		HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
 		HAL_Delay(100);
-
 	}
-	
-	huart = huart_rx;
-}
 
+	huart = huart_rx;
+	dac = dac_handler;
+}
 
 /**
  * @brief Get the int value of a command XXXX%
- * 
+ *
  * @param parser parser object that have buffer consumption info
  * @param command the first command (first 4 chars)
  * @return int value
@@ -134,7 +129,7 @@ int get_command_int(parser_t *parser, command_t *command)
 
 /**
  * @brief Get the float value of a command XXXX.XXXX
- * 
+ *
  * @param parser parser object that have buffer consumption info
  * @param command the first command (first 4 chars)
  * @return float value
@@ -241,9 +236,43 @@ const nodes_t *node_parser(parser_t *parser, command_t *command, const nodes_t *
 	return NULL;
 }
 
-void parse_ping(parser_t *parser, command_t *command)
+void parse_write_hard_enbl(parser_t *parser, command_t *command)
 {
-	printf("pong\n");
+	int value = get_command_int(parser, command);
+	LOG_INFO("Setting ENABLE_LOAD to %d\n", value);
+	HAL_GPIO_WritePin(ENABLE_LOAD_GPIO_Port, ENABLE_LOAD_Pin, value ? GPIO_PIN_SET : GPIO_PIN_RESET);
+}
+
+void parse_write_hard_dac1(parser_t *parser, command_t *command)
+{
+	float value = get_command_float(parser, command);
+	LOG_INFO("Setting DAC1 to %f\n", value);
+	mcp4725_set_voltage(dac, 3.3, value, false);
+}
+
+void parse_read_meas_curr(parser_t *parser, command_t *command)
+{
+	printf("%f\n", adc_get_value(ADC_INPUT_CURRENT));
+}
+
+void parse_read_meas_voln(parser_t *parser, command_t *command)
+{
+	printf("%f\n", adc_get_value(ADC_INPUT_VOLTAGE));
+}
+
+void parse_read_meas_volk(parser_t *parser, command_t *command)
+{
+	printf("%f\n", adc_get_value(ADC_INPUT_VOLTAGE_KELVIN));
+}
+
+void parse_read_meas_allm(parser_t *parser, command_t *command)
+{	
+	print_measurements = !print_measurements;
+}
+
+void parse_read_syst_ping(parser_t *parser, command_t *command)
+{
+	printf("PONG\n");
 }
 
 void uart_parse(uint32_t last_index, uint32_t index_diff)
@@ -261,56 +290,96 @@ void uart_parse(uint32_t last_index, uint32_t index_diff)
 	 * Separators:
 	 * '.': Float value
 	 * '%': Int value
-	 * '?': Respose
+	 * '?': Response
 	 * ':': Command
-	 * 
+	 *
 	 * Commands:
+	 * WRTE:
+	 *      HARD: HARDware
+	 *          DAC1:0000.0000 Write Voltage in DAC (channel and voltage)
+	 *          ENBL:0000%           Enable the main relay (0: disable, 1: enable)
 	 * READ:
 	 *      MEAS: MEASurements
-	 *            VBAT? Get Battery Voltage
-	 *            IBAT? Get Battery Current
-	 *            VPAN? Get Panel Voltage
-	 *            IPAN? Get Panel Current
-	 *            ALLM? Get All Measurements comma separatedRRRRR
-	 *      CTRL: ConTRol
-	 *            ALGO? Get the current algorithm
-	 * 
-	 *
-	 * WRTE:
-	 *      SYST: System
-	 *          PING? Reply the sent message with a ping to the terminal
-	 *          ECHO:XXXE% Reply the sent message with the same message (E = 1 enabled, E = 0 disabled)
-	 * 			REST:XXXE% Reset peripherical (E = 1: ADC)
-	 *      HARD: HARDware
-	 *          DUTY:0000.0000 Write PWM DUTY cycle (Is not recommended write directly in the hardware
-	 *                                                   because control algorithms change the duty cycle,
-	 *                                                   is recommended to use the command: WRTE:CTRL:ALGO:FIXD:0000.0000 instead)
-	 *          FREQ:0000.0000 Write FREQuency in kHz
-	 *          DAC1:0000%0000 Write Voltage in DAC first int is the channel and second is voltage in mV
-	 *      MACH: MACHine
-	 *          STAT:(Not implemented)XXX0% Force machine state 
-	 *      CTRL: ConTRoL
-	 *          ALGO: Force Control Algorithm
-	 *              FIXD:0000.0000  Change to fixed duty cycle algorithm with initial duty cycle 0000.0000
-	 *              PEOF:0000.0000  Change to PeO fixed step algorithm with initial duty cycle 0000.0000
-	 *              BRUT:0000.0000  Change to Brute Force algorithm with initial duty cycle 0000.0000
-	 * 				CONF: CONFigure algorithms 
-	 * 					PEOF:	Perturbe and Observe
-	 * 						STEP:0000.0000 Perturbation steps
-	 * 						FREQ:0000.0000 Perturbation frequency in khz
-	 * 
-	 *
+	 *          CURR?          Get input current
+	 *          VOLN?          Get normal voltage
+	 *          VOLK?          Get Kelvin voltage
+	 *          ALLM?          Get all measurements
+	 * PING?          Reply with a PING
 	 */
 
-	/* READ COMMANDS */
+	/* WRITE COMMANDS */
+	MAKE_NODES(
+		dac1,
+		{
+			MAKE_NODE(VARIABLE, DOT, parse_write_hard_dac1, NULL),
+		});
 
+	MAKE_NODES(
+		enbl,
+		{
+			MAKE_NODE(VARIABLE, PERCENT, parse_write_hard_enbl, NULL),
+		});
+
+	MAKE_NODES(
+		write_hardware,
+		{
+			MAKE_NODE("DAC1", COLON, NULL, &dac1),
+			MAKE_NODE("ENBL", COLON, NULL, &enbl),
+		});
+
+	MAKE_NODES(
+		write,
+		{
+			MAKE_NODE("HARD", COLON, NULL, &write_hardware),
+		});
+
+	/* READ COMMANDS */
+	MAKE_NODES(
+		curr,
+		{
+			MAKE_NODE(VARIABLE, UNDEFINED, parse_read_meas_curr, NULL),
+		});
+
+	MAKE_NODES(
+		voln,
+		{
+			MAKE_NODE(VARIABLE, UNDEFINED, parse_read_meas_voln, NULL),
+		});
+
+	MAKE_NODES(
+		volk,
+		{
+			MAKE_NODE(VARIABLE, UNDEFINED, parse_read_meas_volk, NULL),
+		});
+
+	MAKE_NODES(
+		allm,
+		{
+			MAKE_NODE(VARIABLE, UNDEFINED, parse_read_meas_allm, NULL),
+		});
+
+	MAKE_NODES(
+		meas,
+		{
+			MAKE_NODE("CURR", QUESTION, NULL, &curr),
+			MAKE_NODE("VOLN", QUESTION, NULL, &voln),
+			MAKE_NODE("VOLK", QUESTION, NULL, &volk),
+			MAKE_NODE("ALLM", QUESTION, NULL, &allm),
+		});
+
+	MAKE_NODES(
+		read,
+		{
+			MAKE_NODE("MEAS", COLON, NULL, &meas),
+		});
 
 	/* ROOT COMMAND */
-
 	MAKE_NODES(
 		root,
 		{
-			MAKE_NODE("PING", QUESTION, parse_ping, NULL),
+			MAKE_NODE("WRTE", COLON, NULL, &write),
+			MAKE_NODE("READ", COLON, NULL, &read),
+			MAKE_NODE("PING", QUESTION, parse_read_syst_ping, NULL),
 		});
 
 	const nodes_t *nodes = &root;
@@ -336,6 +405,11 @@ void uart_run(void)
 	{
 		uart_parse(last_index_read, index_diff);
 		last_index_read = last_index_dma;
+	}
+
+	if (print_measurements)
+	{
+		printf("II: %f, VV: %f, VK: %f\n", adc_get_value(ADC_INPUT_CURRENT), adc_get_value(ADC_INPUT_VOLTAGE), adc_get_value(ADC_INPUT_VOLTAGE_KELVIN));
 	}
 }
 
