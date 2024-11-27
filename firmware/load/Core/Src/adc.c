@@ -15,7 +15,7 @@
  */
 static const float ADC_CORRECTION_COEFFICIENTS[ADC_CHANNELS_SIZE][2] = {
 	{0.0, 1.0f},
-	{0.0, 1.0f},
+	{-0.08353555, 11.22826758f},
 	{0.0f, 1.0f}};
 
 static const uint8_t ADC_CHANNELS[] = {
