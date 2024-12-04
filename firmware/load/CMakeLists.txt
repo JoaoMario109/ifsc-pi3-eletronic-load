@@ -39,10 +39,14 @@ add_executable(${CMAKE_PROJECT_NAME})
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
+# Add the parser library
+add_subdirectory(Lib/Parser)
+
 
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths
+    Lib/Parser
 )
 
 # Add sources to executable
@@ -58,6 +62,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
     Core/Inc/
+    Lib/Parser/src
 )
 
 # Add project symbols (macros)
@@ -68,8 +73,8 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
-
     # Add user defined libraries
+    parser
 )
 
 add_custom_command(
