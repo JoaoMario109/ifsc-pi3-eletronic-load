@@ -1,0 +1,26 @@
+dependencies:
+  idf:
+    source:
+      type: idf
+    version: 5.3.1
+  lvgl/lvgl:
+    component_hash: d7c1ac037ae6e85d94897f807d6e7ba0946a83e720074fc95a4f6241da9f9f53
+    dependencies: []
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 8.4.0
+  teriyakigod/esp_lcd_st7735:
+    component_hash: 5c61377ee7a5bbccb40a629c2db9c1918ce1645beb2732c007934c52bc1be2a1
+    dependencies: []
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 0.0.1
+direct_dependencies:
+- idf
+- lvgl/lvgl
+- teriyakigod/esp_lcd_st7735
+manifest_hash: 6aef10a9037f720c955269d0bc1b22b70268809d51b7cde87903091cc563bc39
+target: esp32
+version: 2.0.0
