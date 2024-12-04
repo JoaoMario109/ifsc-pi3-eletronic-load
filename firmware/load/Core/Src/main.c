@@ -26,6 +26,7 @@
 #include <ads111x.h>
 #include <adc.h>
 #include <uart.h>
+#include <control.h>
 #include <hmi.h>
 #include <utils.h>
 /* USER CODE END Includes */
@@ -60,6 +61,8 @@ DMA_HandleTypeDef hdma_usart1_rx;
 /* USER CODE BEGIN PV */
 extern float dac_voltage;
 extern uint8_t enable;
+// MCP4725 device descriptor
+mcp4725_t dac;
 
 int _write(int fd __attribute__((unused)), char *ptr, int len)
 {
@@ -142,8 +145,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  // MCP4725 device descriptor
-  mcp4725_t dac;
+
 
   // Initialize MCP4725 device
   if (mcp4725_init(&dac, &hi2c2, MCP4725_I2C_ADDR) != HAL_OK)
@@ -152,8 +154,9 @@ int main(void)
   }
 
   adc_init(&hi2c2);
-  hmi_init(&hi2c1, &dac);
+  hmi_init(&hi2c1);
   uart_init(&huart1, &dac);
+  control_init();
 
 
   HAL_GPIO_WritePin(ENABLE_LOAD_GPIO_Port, ENABLE_LOAD_Pin, GPIO_PIN_SET);
@@ -189,6 +192,7 @@ int main(void)
 
       last_dac_update = HAL_GetTick() + 500;
       adc_calculate_average();
+      control_update();
       LOG_INFO("Current: %f Enable %d\n", dac_voltage, enable);
       HAL_GPIO_WritePin(ENABLE_LOAD_GPIO_Port, ENABLE_LOAD_Pin, enable ? GPIO_PIN_SET : GPIO_PIN_RESET);
       mcp4725_set_voltage(&dac, 3.3, dac_voltage, false);

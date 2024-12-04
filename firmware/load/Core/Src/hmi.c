@@ -3,14 +3,14 @@
 #include <parser.h>
 
 uint8_t RxData[6];
-mcp4725_t *dac;
+extern mcp4725_t *dac;
 
 I2C_HandleTypeDef *hi2c_hmi;
 
 float dac_voltage = 0.0f;
 uint8_t enable = 0;
 
-void hmi_init(I2C_HandleTypeDef *hi2c, mcp4725_t *dac_handler)
+void hmi_init(I2C_HandleTypeDef *hi2c)
 {
 	LOG_INFO("I2C: HMI init\n");
 	HAL_I2C_EnableListen_IT(hi2c);

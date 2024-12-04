@@ -6,7 +6,7 @@
 
 #include <mcp4725.h>
 
-void hmi_init(I2C_HandleTypeDef *hi2c, mcp4725_t *dac_handler);
+void hmi_init(I2C_HandleTypeDef *hi2c);
 
 
 #endif /* HMI_H */
