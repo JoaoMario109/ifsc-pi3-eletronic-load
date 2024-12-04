@@ -2,7 +2,7 @@
 #include "utils.h"
 #include <parser.h>
 
-uint8_t RxData[6];
+uint8_t RxData[10];
 mcp4725_t *dac;
 
 I2C_HandleTypeDef *hi2c_hmi;
@@ -69,7 +69,7 @@ void parse_i2c(uint8_t *data, uint32_t len)
 {
 
 	enable = data[0];
-	uint16_t value = (uint16_t)data[1] << 8 | (uint16_t)data[2];
+	uint16_t value = ((uint16_t)data[1]) << 8 | (uint16_t)data[2];
 
 	float current = ((float)(value)) / 1000.0f;
 	
@@ -192,41 +192,41 @@ void parse_i2c(uint8_t *data, uint32_t len)
 
 }
 
-extern void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
-{
-	LOG_INFO("I2C: Address callback begin\n");
-	if (hi2c != hi2c_hmi)
-	{
-		LOG_ERROR("I2C: Invalid I2C handle\n");
-		return;
-	}
-	if(TransferDirection == I2C_DIRECTION_TRANSMIT)
-	{
-		LOG_ERROR("I2C: Tran\n");
-		HAL_I2C_Slave_Sequential_Receive_IT(hi2c, RxData, 6, I2C_FIRST_AND_LAST_FRAME);
-		/* Parse I2C data */
-		parse_i2c(RxData, 6);
-	}
-	else
-	{
-		//Error_Handler();
-	}
-}
-
-extern void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef *hi2c)
-{
-	LOG_INFO("I2C: Address match callback\n");
-	HAL_I2C_EnableListen_IT(hi2c);
-}
-
-// void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef *hi2c)
+// extern void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
 // {
+// 	LOG_INFO("I2C: Address callback begin\n");
+// 	if (hi2c != hi2c_hmi)
+// 	{
+// 		LOG_ERROR("I2C: Invalid I2C handle\n");
+// 		return;
+// 	}
+// 	if(TransferDirection == I2C_DIRECTION_TRANSMIT)
+// 	{
+// 		LOG_ERROR("I2C: Tran\n");
+// 		HAL_I2C_Slave_Receive_IT(hi2c, RxData, 3);
+// 		/* Parse I2C data */
+// 		parse_i2c(RxData, 3);
+// 	}
+// 	else
+// 	{
+// 		//Error_Handler();
+// 	}
+// }
+
+// extern void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef *hi2c)
+// {
+// 	LOG_INFO("I2C: Address match callback\n");
 // 	HAL_I2C_EnableListen_IT(hi2c);
 // }
 
-void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
-{
-	uint32_t error = HAL_I2C_GetError(hi2c);
-	LOG_ERROR("I2C: Error callback %ld\n", error);
-	HAL_I2C_EnableListen_IT(hi2c);
-}
+// // void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef *hi2c)
+// // {
+// // 	HAL_I2C_EnableListen_IT(hi2c);
+// // }
+
+// void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
+// {
+// 	uint32_t error = HAL_I2C_GetError(hi2c);
+// 	LOG_ERROR("I2C: Error callback %ld\n", error);
+// 	HAL_I2C_EnableListen_IT(hi2c);
+// }
