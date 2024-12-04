@@ -15,7 +15,7 @@
 TaskHandle_t h_load_task;
 TaskHandle_t h_transmit_task;
 
-uint8_t bytes[6] = {0};
+unsigned char bytes[7] = {0};
 
 /** Handlers */
 uint16_t h_main_value;
@@ -60,9 +60,9 @@ static void load_transmit_task(void *arg)
     {
         lvgl_mutex_lock(250);
         bytes[0] = h_load_enabled;
-        bytes[1] = (uint8_t)((h_main_value >> 8) & 0xFF);
-        bytes[2] = (uint8_t)(h_main_value & 0xFF);
-        i2c_send_bytes_to_load(bytes, 6);
+        bytes[1] = h_main_value >> 8;
+        bytes[2] = h_main_value & 0xFF;
+        i2c_master_transmit(h_i2c0_load, bytes, 6, -1);
         lvgl_mutex_unlock();
 
         vTaskDelay(pdMS_TO_TICKS(TRANSMIT_TASK_DELAY));
@@ -109,7 +109,7 @@ static void load_main_task(void *arg)
                 }
             }
 
-            h_main_value = (uint16_t)lv_spinbox_get_value(h_value_spinbox);
+            h_main_value = (uint32_t)lv_spinbox_get_value(h_value_spinbox);
             lvgl_mutex_unlock();
         }
 

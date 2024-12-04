@@ -6,10 +6,11 @@
 
 /** Handlers */
 extern i2c_master_bus_handle_t h_i2c0;
+extern i2c_master_dev_handle_t h_i2c0_load;
 
 /** General Config */
-#define LOAD_MODULE_SLAVE_ADDR 0x12U
-#define I2C_CLOCK_SPEED 10000U
+#define LOAD_MODULE_SLAVE_ADDR 0x12
+#define I2C_CLOCK_SPEED 10000
 
 /** Prototypes */
 
