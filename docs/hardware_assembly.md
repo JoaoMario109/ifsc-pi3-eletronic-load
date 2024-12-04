@@ -16,9 +16,8 @@ O IBOM pode ser localizado [aqui](../hardware/load/output/ibom.html).
 2. Verificação de conexões críticas e continuidade usando ferramentas de medição.
 3. Ajustes manuais e correções em componentes conforme necessário.
 
-![Soldagem inicial](assets/solda.jpeg)
-![Testes no osciloscópio](assets/osciloscopio.jpeg)
-![Análise no osciloscópio](assets/analise-osciloscopio.jpeg)
+![load-pcb-assembly](assets/load-pcb-assembled.jpeg)
+![load-pcb-assembly-bottom](assets/load-pcb-assembled-bottom.jpeg)
 
 ## Testes
 
@@ -36,8 +35,8 @@ O IBOM pode ser localizado [aqui](../hardware/load/output/ibom.html).
 - Trimpots foram adicionados para ajustar manualmente os ganhos do controlador PID.
 - Testes de resposta no osciloscópio foram realizados para otimizar a estabilidade e a eficiência do sistema.
 
-**Imagens do Osciloscópio:**
-(Incluir imagens para mostrar os resultados obtidos durante o ajuste do PID.)
+![Teste do PID](assets/anlog-pid-tunnign.jpeg)
+![Teste do PID 2](assets/anlog-pid-tunnign2.jpeg)
 
 ### Teste de Linearização do ADC
 - Realizada uma varredura em passos de 10 mV no DAC.
