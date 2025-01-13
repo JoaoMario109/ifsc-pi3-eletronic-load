@@ -42,7 +42,6 @@ add_subdirectory(cmake/stm32cubemx)
 # Add the parser library
 add_subdirectory(Lib/Parser)
 
-
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths
@@ -52,11 +51,8 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
-    Core/Src/adc.c
-    Core/Src/uart.c
-    Core/Src/mcp4725.c
-    Core/Src/ads111x.c
-    Core/Src/hmi.c
+    Core/Src/load/mcp4725.c
+    Core/Src/load/ads111x.c
 )
 
 # Add include paths

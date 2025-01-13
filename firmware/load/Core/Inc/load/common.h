@@ -1,0 +1,7 @@
+#ifndef _LOAD_COMMON_H_
+#define _LOAD_COMMON_H_
+
+#define UART_TX_BUFFER_SIZE 256
+#define UART_RX_BUFFER_SIZE 256
+
+#endif // !_LOAD_COMMON_H_
