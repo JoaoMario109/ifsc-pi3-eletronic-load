@@ -87,5 +87,11 @@ HAL_StatusTypeDef mcp4725_get_voltage(mcp4725_t *dev, float vdd, bool eeprom, fl
 
 // Set voltage output
 HAL_StatusTypeDef mcp4725_set_voltage(mcp4725_t *dev, float vdd, float value, bool eeprom) {
+	if (value < 0) {
+		value = 0;
+	} else if (value > vdd) {
+		value = vdd;
+	}
+
 	return mcp4725_set_raw_output(dev, (uint16_t)(MCP4725_MAX_VALUE / vdd * value), eeprom);
 }

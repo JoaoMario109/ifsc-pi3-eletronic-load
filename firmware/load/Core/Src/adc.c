@@ -14,9 +14,10 @@
  *
  */
 static const float ADC_CORRECTION_COEFFICIENTS[ADC_CHANNELS_SIZE][2] = {
-	{0.0, 1.0f},
-	{-0.08353555, 11.22826758f},
-	{0.0f, 1.0f}};
+	{0.20919486f, 31.65715446f},
+	{-0.08353555f, 11.22826758f},
+	{0.0f, 1.0f},
+	{192.02738f, -72.69488f}};
 
 static const uint8_t ADC_CHANNELS[] = {
 	ADS111X_MUX_0_GND,
@@ -24,6 +25,8 @@ static const uint8_t ADC_CHANNELS[] = {
 	ADS111X_MUX_2_GND,
 	ADS111X_MUX_3_GND,
 };
+
+volatile uint16_t dma_adc_buffer[6];
 
 /**
  * @brief ADC structure
@@ -37,7 +40,7 @@ adc_t adc;
  * @param hi2c I2C handle
  * @return HAL_StatusTypeDef HAL status
  */
-HAL_StatusTypeDef adc_init(I2C_HandleTypeDef *hi2c)
+HAL_StatusTypeDef adc_init(I2C_HandleTypeDef *hi2c, ADC_HandleTypeDef *hadc)
 {
 	LOG_INFO("Initializing ADC...");
 
@@ -99,6 +102,18 @@ HAL_StatusTypeDef adc_init(I2C_HandleTypeDef *hi2c)
 		LOG_ERROR("ads111x_start_conversion");
 	}
 
+	/* Calibrate temperature sensor */
+	if (HAL_ADCEx_Calibration_Start(hadc) != HAL_OK)
+	{
+		LOG_ERROR("HAL_ADCEx_Calibration_Start");
+	}
+
+	/* Start temperature sensor conversion */
+	if (HAL_ADC_Start_DMA(hadc, (uint32_t *)dma_adc_buffer, sizeof(dma_adc_buffer) / sizeof(dma_adc_buffer[0])) != HAL_OK)
+	{
+		LOG_ERROR("HAL_ADC_Start_DMA");
+	}
+
 	/* Initialize channels */
 	for (uint8_t i = 0; i < ADC_CHANNELS_SIZE; i++)
 	{
@@ -135,12 +150,10 @@ HAL_StatusTypeDef adc_set_gain(adc_channels_t channel, uint16_t value)
 	if (value > (ADS111X_MAX_VALUE - HYSTERESIS) && gain != ADS111X_GAIN_4V096)
 	{
 		gain--;
-		LOG_INFO("Setting gain of channel %d: %f\n", channel, ads111x_gain_values[gain]);
 	}
 	else if (value < (LOW_TRESHOLD - HYSTERESIS) && gain != ADS111X_GAIN_0V256)
 	{
 		gain++;
-		LOG_INFO("Setting gain of channel %d: %f\n", channel, ads111x_gain_values[gain]);
 	}
 
 	/* Set gain */
@@ -156,6 +169,24 @@ HAL_StatusTypeDef adc_set_gain(adc_channels_t channel, uint16_t value)
  */
 HAL_StatusTypeDef adc_measure(void)
 {
+	/* Temperature sensor uses ADC DMA */
+	if (adc.last_channel_index == ADC_TEMPERATURE)
+	{
+		for (uint8_t i = 0; i < sizeof(dma_adc_buffer) / sizeof(dma_adc_buffer[0]); i++)
+		{
+			float voltage = (float)dma_adc_buffer[i] * (3.778742f / 4095.0f);
+			adc.channels[adc.last_channel_index].value.sum += voltage;
+			adc.channels[adc.last_channel_index].value.samples++;
+		}
+		adc.last_channel_index = (adc.last_channel_index + 1) % (ADC_CHANNELS_SIZE - 1);
+
+		/* If all channels are measured set flag */
+		if (adc.last_channel_index == 0)
+		{
+			adc.all_channels_measured = 1;
+		}
+	}
+
 	/* If conversion available */
 	uint8_t busy;
 
@@ -189,7 +220,7 @@ HAL_StatusTypeDef adc_measure(void)
 	adc_set_gain(adc.last_channel_index, value);
 
 	/* Read next channel */
-	adc.last_channel_index = (adc.last_channel_index + 1) % ADC_CHANNELS_SIZE;
+	adc.last_channel_index = (adc.last_channel_index + 1) % (ADC_CHANNELS_SIZE - 1);
 
 	/* If all channels are measured set flag */
 	if (adc.last_channel_index == 0)

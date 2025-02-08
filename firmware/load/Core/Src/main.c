@@ -27,6 +27,8 @@
 #include <adc.h>
 #include <uart.h>
 #include <hmi.h>
+#include <fan.h>
+#include <control.h>
 #include <utils.h>
 /* USER CODE END Includes */
 
@@ -46,10 +48,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
 
 I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
-DMA_HandleTypeDef hdma_i2c1_rx;
 
 RTC_HandleTypeDef hrtc;
 
@@ -82,6 +84,7 @@ static void MX_USART1_UART_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 uint8_t data[6] = {0};
+extern uint32_t trigger_test;
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -145,6 +148,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   // MCP4725 device descriptor
   mcp4725_t dac;
+  control_t control;
 
   // Initialize MCP4725 device
   if (mcp4725_init(&dac, &hi2c2, MCP4725_I2C_ADDR) != HAL_OK)
@@ -152,9 +156,11 @@ int main(void)
     error_handler();
   }
 
-  adc_init(&hi2c2);
+  adc_init(&hi2c2, &hadc1);
   //hmi_init(&hi2c1, &dac);
-  uart_init(&huart1, &dac);
+  uart_init(&huart1, &dac, &control);
+  fan_init(&htim1);
+  control_init(&control, &dac);
 
   HAL_GPIO_WritePin(ENABLE_LOAD_GPIO_Port, ENABLE_LOAD_Pin, GPIO_PIN_SET);
   /* USER CODE END 2 */
@@ -171,31 +177,61 @@ int main(void)
       {
         LOG_ERROR("Error reading ADC\n");
       }
-      HAL_GPIO_TogglePin(EXTERNAL_TRIGGER_OUT_GPIO_Port, EXTERNAL_TRIGGER_OUT_Pin);
+      
+      
       HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
       HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
       adc_ready = 0;
     }
+
+    if (adc_all_channels_measured())
+    {
+      //HAL_GPIO_TogglePin(EXTERNAL_TRIGGER_IN_GPIO_Port, EXTERNAL_TRIGGER_IN_Pin);
+      adc_calculate_average();
+      control_update(&control);
+      printf("sp: %f, ms: %f, ca: %f\n", control.io[control.mode].setpoint, control.io[control.mode].measured_value, control.io[control.mode].control_action);
+    }
+
     static uint32_t next_uart_update = 0;
     if (HAL_GetTick() >= next_uart_update)
     {
-      next_uart_update = HAL_GetTick() + 100;
+      next_uart_update = HAL_GetTick() + 200;
+      // printf("mode: %d ca: %0.3f | CC => set: %0.3f meas: %0.3f | CV => set: %0.3f meas: %0.3f | CP => set: %0.3f meas: %0.3f | CR => set: %0.3f meas: %0.3f \n",
+      //   control.mode,
+      //   control.io[control.mode].control_action,
+      //   control.io[CONTROL_MODE_CC].setpoint,
+      //   control.io[CONTROL_MODE_CC].measured_value,
+      //   control.io[CONTROL_MODE_CV].setpoint,
+      //   control.io[CONTROL_MODE_CV].measured_value,
+      //   control.io[CONTROL_MODE_CP].setpoint,
+      //   control.io[CONTROL_MODE_CP].measured_value,
+      //   control.io[CONTROL_MODE_CR].setpoint,
+      //   control.io[CONTROL_MODE_CR].measured_value
+      // );
       uart_run();
-      HAL_I2C_Slave_Receive_DMA(&hi2c1, data, 6);
-      //HAL_I2C_Slave_Receive(&hi2c1, data, 6, 1000);
-      parse_i2c(data, 6);
+      fan_update();
 
+      if (control.io[control.mode].setpoint > 0.9)
+      {
+        HAL_GPIO_WritePin(EXTERNAL_TRIGGER_IN_GPIO_Port, EXTERNAL_TRIGGER_IN_Pin, GPIO_PIN_SET);
+      }
+      else
+      {
+        HAL_GPIO_WritePin(EXTERNAL_TRIGGER_IN_GPIO_Port, EXTERNAL_TRIGGER_IN_Pin, GPIO_PIN_RESET);
+      }
     }
-    static uint32_t last_dac_update = 0;
-    if (HAL_GetTick() >= last_dac_update)
+
+    static uint32_t next_trigger_start = 0;
+    if (HAL_GetTick() >= next_trigger_start)
     {
-
-      last_dac_update = HAL_GetTick() + 500;
-      adc_calculate_average();
-      LOG_INFO("Current: %f Enable %d ADC: %f\n", dac_voltage, enable, adc_get_value(ADC_INPUT_CURRENT));
-      HAL_GPIO_WritePin(ENABLE_LOAD_GPIO_Port, ENABLE_LOAD_Pin, enable ? GPIO_PIN_SET : GPIO_PIN_RESET);
-      mcp4725_set_voltage(&dac, 3.3, dac_voltage, false);
+      next_trigger_start = HAL_GetTick() + 400;
+      trigger_test = 1;
     }
+
+    /* 
+     * 0.632mV osci = 1A
+     * WRTE:DAC1:0000.1059
+    */
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -244,7 +280,7 @@ void SystemClock_Config(void)
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_ADC;
   PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
-  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV8;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -273,7 +309,7 @@ static void MX_ADC1_Init(void)
   */
   hadc1.Instance = ADC1;
   hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -514,12 +550,12 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
   /* DMA1_Channel5_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
-  /* DMA1_Channel7_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
 
 }
 
@@ -544,23 +580,25 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(EXTERNAL_TRIGGER_OUT_GPIO_Port, EXTERNAL_TRIGGER_OUT_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(EXTERNAL_TRIGGER_IN_GPIO_Port, EXTERNAL_TRIGGER_IN_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LED_GREEN_Pin|ENABLE_LOAD_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : EXTERNAL_TRIGGER_OUT_Pin */
-  GPIO_InitStruct.Pin = EXTERNAL_TRIGGER_OUT_Pin;
+  /*Configure GPIO pins : EXTERNAL_TRIGGER_OUT_Pin EXTERNAL_TRIGGER_IN_Pin */
+  GPIO_InitStruct.Pin = EXTERNAL_TRIGGER_OUT_Pin|EXTERNAL_TRIGGER_IN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(EXTERNAL_TRIGGER_OUT_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : EXTERNAL_TRIGGER_IN_Pin */
-  GPIO_InitStruct.Pin = EXTERNAL_TRIGGER_IN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(EXTERNAL_TRIGGER_IN_GPIO_Port, &GPIO_InitStruct);
+  /*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LED_RED_Pin */
   GPIO_InitStruct.Pin = LED_RED_Pin;

@@ -11,8 +11,9 @@
 typedef enum {
 	ADC_INPUT_VOLTAGE,
 	ADC_INPUT_CURRENT,
-	ADC_INPUT_VOLTAGE_KELVIN,
-	ADC_CHANNELS_SIZE
+	//ADC_INPUT_VOLTAGE_KELVIN,
+	ADC_TEMPERATURE,
+	ADC_CHANNELS_SIZE,
 } adc_channels_t;
 
 /**
@@ -65,7 +66,7 @@ typedef struct
  * @param hi2c I2C handle
  * @return HAL_StatusTypeDef HAL status
  */
-HAL_StatusTypeDef adc_init(I2C_HandleTypeDef *hi2c);
+HAL_StatusTypeDef adc_init(I2C_HandleTypeDef *hi2c, ADC_HandleTypeDef *hadc);
 
 /**
  * @brief Measure a channel
