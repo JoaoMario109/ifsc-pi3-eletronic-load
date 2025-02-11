@@ -18,6 +18,18 @@
  */
 
 /**
+ * @enum load_parser_state
+ * @brief Load parser states.
+ */
+typedef enum load_parser_state
+{
+  PARSER_WAIT_START = 0U,
+  PARSER_WAIT_DATA,
+  PARSER_WAIT_CS_1,
+  PARSER_WAIT_CS_2,
+} load_parser_state_t;
+
+/**
  * @enum load_mode
  * @brief Load operating modes.
  */
@@ -89,63 +101,61 @@ typedef struct panel_to_load
  */
 typedef struct load_to_panel
 {
-  uint32_t magic_word;  /**< Magic word to verify the struct */
-  load_state_t data;    /**< Load state */
-  uint32_t checksum;    /**< Checksum of the struct */
+  uint32_t magic_word;      /**< Magic word to verify the struct */
+  load_measurement_t data;  /**< Load state */
+  uint32_t checksum;        /**< Checksum of the struct */
 } load_to_panel_t;
 
 /** Definitions */
 
 #ifdef LOAD_MODULE
-  #define TX_BUFFER_SIZE sizeof(load_to_panel_t)
-  #define RX_BUFFER_SIZE sizeof(panel_to_load_t)
+  #define TX_DATA_TYPE load_measurement_t
+  #define RX_DATA_TYPE load_control_t
+
+  #define TX_MSG_TYPE load_to_panel_t
+  #define RX_MSG_TYPE panel_to_load_t
 
   #define TX_MAGIC_WORD 0x2B2B2B2B
   #define RX_MAGIC_WORD 0x2D2D2D2D
-
-  #define TX_DATA_WRAPPER load_to_panel_t
-  #define RX_DATA_WRAPPER panel_to_load_t
-
-  #define TX_DATA_TYPE load_state_t
-  #define RX_DATA_TYPE load_control_t
 #else
-  #define TX_BUFFER_SIZE sizeof(panel_to_load_t)
-  #define RX_BUFFER_SIZE sizeof(load_to_panel_t)
+  #define TX_DATA_TYPE load_control_t
+  #define RX_DATA_TYPE load_measurement_t
 
-  #define TX_DATA_WRAPPER panel_to_load_t
-  #define RX_DATA_WRAPPER load_to_panel_t
+  #define TX_MSG_TYPE panel_to_load_t
+  #define RX_MSG_TYPE load_to_panel_t
 
   #define TX_MAGIC_WORD 0x2D2D2D2D
   #define RX_MAGIC_WORD 0x2B2B2B2B
-
-  #define TX_DATA_TYPE load_control_t
-  #define RX_DATA_TYPE load_state_t
 #endif
 
-/**
- * @brief Calculate the checksum of a given data buffer.
- *
- * @param data Pointer to the data buffer
- * @param size Size of the data buffer
- * @return uint32_t Checksum of the data buffer
- */
-uint32_t calculate_checksum(void *data, uint32_t size);
+#define TX_DATA_SIZE sizeof(TX_DATA_TYPE)
+#define RX_DATA_SIZE sizeof(RX_DATA_TYPE)
+
+#define TX_MSG_SIZE sizeof(TX_MSG_TYPE)
+#define RX_MSG_SIZE sizeof(RX_MSG_TYPE)
 
 /**
- * @brief Prepare the data to be sent.
+ * @brief Parses a single byte of data from the expected message.
  *
- * @param data Data to be sent
- * @param tx_buffer Buffer to store the data
+ * @param byte Byte to be parsed
+ * @return uint8_t* NULL if message is not complete, pointer to the message if complete
  */
-void prepare_tx_data(TX_DATA_TYPE *data, uint8_t *tx_buffer);
+uint8_t *parse_byte(uint8_t byte);
 
 /**
- * @brief Receive the data sent by the other side.
+ * @brief Prepares a data struct to be transmitted.
+ *
+ * @param data Data struct to be transmitted
+ * @param tx_buffer Buffer to store the data ready to be transmitted
+ */
+void tx_data(TX_DATA_TYPE *data, uint8_t *tx_buffer);
+
+/**
+ * @brief Extracts the data from a received buffer.
  *
  * @param rx_buffer Buffer containing the received data
- * @param data Data to be extracted from the buffer
- * @return int 0 if the data is valid, -1 otherwise
+ * @param data Pointer to the struct where the data will be stored
  */
-int receive_rx_data(uint8_t *rx_buffer, RX_DATA_TYPE *data);
+int rx_data(uint8_t *rx_buffer, RX_DATA_TYPE *data);
 
 #endif /** !__SERVER_H__ */
