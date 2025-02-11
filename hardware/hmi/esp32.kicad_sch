@@ -1203,10 +1203,6 @@
 		(uuid "c5f6d63d-1f63-42ae-9e3e-a1c8fb76bd8b")
 	)
 	(no_connect
-		(at 158.75 109.22)
-		(uuid "cb3ed296-b6d6-4dbb-beb4-4684c52d7d52")
-	)
-	(no_connect
 		(at 105.41 113.03)
 		(uuid "d4396bb7-7f13-4e4a-882c-17b9994cfa95")
 	)
@@ -1217,10 +1213,6 @@
 	(no_connect
 		(at 105.41 130.81)
 		(uuid "db828086-225b-4e10-a463-917b8718ddc0")
-	)
-	(no_connect
-		(at 158.75 111.76)
-		(uuid "e23d8949-7e9f-43b3-a62b-3fec3fe71594")
 	)
 	(wire
 		(pts
@@ -1444,6 +1436,16 @@
 	)
 	(wire
 		(pts
+			(xy 158.75 111.76) (xy 166.37 111.76)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a9b17ff1-d635-498f-83b0-7e67534a836f")
+	)
+	(wire
+		(pts
 			(xy 110.49 72.39) (xy 110.49 73.66)
 		)
 		(stroke
@@ -1551,6 +1553,16 @@
 			(type default)
 		)
 		(uuid "d6553fbc-6f77-4fe5-9b83-7f1606626107")
+	)
+	(wire
+		(pts
+			(xy 158.75 109.22) (xy 166.37 109.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d791d049-a4f1-446d-8b1f-69ff2c2fe27d")
 	)
 	(wire
 		(pts
@@ -1672,6 +1684,18 @@
 		)
 		(uuid "541b01ac-dfe0-4090-928c-5c3638cf68fb")
 	)
+	(hierarchical_label "SCL"
+		(shape input)
+		(at 166.37 111.76 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "592084b5-aee0-497b-97d4-89e1f766d02e")
+	)
 	(hierarchical_label "MISO"
 		(shape input)
 		(at 166.37 86.36 0)
@@ -1743,6 +1767,18 @@
 			(justify left)
 		)
 		(uuid "a8c3ada9-afa7-4a15-b89b-8184326529a2")
+	)
+	(hierarchical_label "SDA"
+		(shape input)
+		(at 166.37 109.22 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "adeb431d-94f6-417e-b22a-c93ba500e00d")
 	)
 	(hierarchical_label "BTN_CV"
 		(shape input)
