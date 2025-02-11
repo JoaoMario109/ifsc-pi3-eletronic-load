@@ -12,4 +12,20 @@
  */
 void spi_init(void);
 
-#endif // !__BUS_SPI_H__
+/**
+ * @brief Tries to lock the SPI bus access mutex
+ *
+ * @param timeout_ms Timeout in milliseconds to wait for the mutex, if -1, wait indefinitely
+ * @return true Lock acquired
+ * @return false Lock not acquired
+ */
+bool spi_mutex_lock(int timeout_ms);
+
+/**
+ * @brief Unlocks the SPI bus access mutex
+ *
+ * @return void
+ */
+void spi_mutex_unlock(void);
+
+#endif /** !__BUS_SPI_H__ */

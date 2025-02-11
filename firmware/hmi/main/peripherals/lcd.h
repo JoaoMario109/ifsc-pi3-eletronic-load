@@ -64,4 +64,4 @@ bool lvgl_mutex_lock(int timeout_ms);
  */
 void lvgl_mutex_unlock(void);
 
-#endif // !__PERIPHERALS_LCD_H__
+#endif /** !__PERIPHERALS_LCD_H__ */

@@ -1,17 +1,20 @@
 idf_component_register(
   SRCS
-    "bus/spi.c"
-    "bus/i2c.c"
+  "bus/spi.c"
+  "bus/uart.c"
 
-    "peripherals/encoder.c"
-    "peripherals/buttons.c"
-    "peripherals/lcd.c"
-    "peripherals/led.c"
+  "peripherals/encoder.c"
+  "peripherals/buttons.c"
+  "peripherals/lcd.c"
+  "peripherals/led.c"
+  "peripherals/sd.c"
 
-    "ui/index.c"
+  "server/server.c"
 
-    "control/load.c"
+  "ui/index.c"
 
-    "main.c"
+  "control/load.c"
+
+  "main.c"
   INCLUDE_DIRS "."
 )

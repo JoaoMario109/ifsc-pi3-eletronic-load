@@ -4,33 +4,11 @@
 #include <stdbool.h>
 
 /** Handlers */
-extern bool h_button_cc;
-extern bool h_button_cv;
-extern bool h_button_cr;
-extern bool h_button_cp;
-extern bool h_button_en;
-extern bool h_button_enc;
-
-extern bool h_button_cc_last;
-extern bool h_button_cv_last;
-extern bool h_button_cr_last;
-extern bool h_button_cp_last;
-extern bool h_button_en_last;
-extern bool h_button_enc_last;
-
-extern bool h_button_cc_rising;
-extern bool h_button_cv_rising;
-extern bool h_button_cr_rising;
-extern bool h_button_cp_rising;
-extern bool h_button_en_rising;
-extern bool h_button_enc_rising;
-
-extern bool h_button_cc_falling;
-extern bool h_button_cv_falling;
-extern bool h_button_cr_falling;
-extern bool h_button_cp_falling;
-extern bool h_button_en_falling;
-extern bool h_button_enc_falling;
+extern volatile bool h_pending_button_cv;
+extern volatile bool h_pending_button_cr;
+extern volatile bool h_pending_button_cp;
+extern volatile bool h_pending_button_en;
+extern volatile bool h_pending_button_enc;
 
 /** Prototypes */
 
@@ -41,9 +19,15 @@ extern bool h_button_enc_falling;
 void buttons_init(void);
 
 /**
- * @brief Update state of all button handlers
+ * @brief Enable buttons interrupts allowing to detect button press
  * @return void
  */
-void update_buttons(void);
+void buttons_activate(void);
 
-#endif // !__PERIPHERALS_BUTTONS_H__
+/**
+ * @brief Enable buttons interrupts allowing to detect button press
+ * @return void
+ */
+void buttons_deactivate(void);
+
+#endif /** !__PERIPHERALS_BUTTONS_H__ */

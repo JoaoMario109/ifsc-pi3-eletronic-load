@@ -1,8 +1,12 @@
+#include "driver/gpio.h"
+
 #include "common.h"
+#include "utils.h"
 #include "peripherals/led.h"
 
-#include "driver/gpio.h"
-#include "esp_log.h"
+/** Definitions */
+
+#define MODULE_NAME "peripherals.led"
 
 /** Handlers */
 bool h_led_on;
@@ -13,8 +17,12 @@ bool h_led_on;
  */
 void led_init(void)
 {
-    ESP_ERROR_CHECK(gpio_set_direction(GPIO_LED_EN, GPIO_MODE_OUTPUT));
-    set_led_enable(false);
+  LOG_PROLOG
+
+  ESP_ERROR_CHECK(gpio_set_direction(GPIO_LED_EN, GPIO_MODE_OUTPUT));
+  set_led_enable(false);
+
+  LOG_EPILOG
 }
 
 /**
@@ -24,6 +32,6 @@ void led_init(void)
  */
 void set_led_enable(bool en)
 {
-    h_led_on = en;
-    ESP_ERROR_CHECK(gpio_set_level(GPIO_LED_EN, h_led_on));
+  h_led_on = en;
+  ESP_ERROR_CHECK(gpio_set_level(GPIO_LED_EN, h_led_on));
 }

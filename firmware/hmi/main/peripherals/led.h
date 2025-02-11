@@ -21,4 +21,4 @@ void led_init(void);
  */
 void set_led_enable(bool en);
 
-#endif // !__PERIPHERALS_LED_H__
+#endif /** !__PERIPHERALS_LED_H__ */

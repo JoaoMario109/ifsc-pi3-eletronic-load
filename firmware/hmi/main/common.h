@@ -21,8 +21,8 @@
 
 /** Communication */
 
-#define GPIO_I2C_SDA 21
-#define GPIO_I2C_SCL 22
+#define GPIO_UART_TX 1
+#define GPIO_UART_RX 3
 
 #define GPIO_SPI_MOSI 23
 #define GPIO_SPI_MISO 19
@@ -36,4 +36,4 @@
 #define GPIO_LCD_DC 15
 #define GPIO_LCD_RST 16
 
-#endif // !__COMMON_H__
+#endif /** !__COMMON_H__ */

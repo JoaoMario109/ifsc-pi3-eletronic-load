@@ -40,4 +40,4 @@ void encoder_stop(void);
  */
 void encoder_clear(void);
 
-#endif // !__PERIPHERALS_ENCODER_H__
+#endif /** !__PERIPHERALS_ENCODER_H__ */
