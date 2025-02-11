@@ -4,6 +4,9 @@
 #include "lvgl.h"
 
 /** Handlers */
+
+extern lv_obj_t *h_scr_ui_index;
+
 extern lv_obj_t *h_led_enable;
 
 extern lv_obj_t *h_value_spinbox;
@@ -18,10 +21,8 @@ extern lv_obj_t *h_value_power_spinbox;
 
 /**
  * @brief Main index UI of the load, inital window
- *
- * @param disp Display handler
  * @return void
  */
-void index_ui_window(lv_disp_t *disp);
+void ui_index_window();
 
 #endif // !__UI_INDEX_H__

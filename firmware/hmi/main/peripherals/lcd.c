@@ -62,34 +62,23 @@ void lcd_init(void)
 
   spi_mutex_unlock();
 
-  LOG_EPILOG
-}
-
-/**
- * @brief Start LVGL task with a given UI
- * @return void
- */
-void lcd_start(ui_fn_t ui_fn)
-{
   xTaskCreate(
     lvgl_task_impl, "LVGL", LVGL_TASK_STACK_SIZE, NULL, LVGL_TASK_PRIORITY, &h_lvgl_task
   );
   configASSERT(h_lvgl_task);
 
-  if (lvgl_mutex_lock(-1)) {
-    ui_fn(h_disp);
-    lvgl_mutex_unlock();
-  }
+  LOG_EPILOG
 }
 
 /**
- * @brief Stop and detroy LVGL task
+ * @brief Load a UI screen to the LCD
  * @return void
  */
-void lcd_stop(void)
+void lcd_load_ui(lv_obj_t *ui_screen)
 {
-  vTaskDelete(h_lvgl_task);
-  h_lvgl_task = NULL;
+  lvgl_mutex_lock(-1);
+  lv_disp_load_scr(ui_screen);
+  lvgl_mutex_unlock();
 }
 
 /**

@@ -1,6 +1,8 @@
 #ifndef __BUS_SPI_H__
 #define __BUS_SPI_H__
 
+#include <stdbool.h>
+
 /** General Config */
 #define MAX_SPI_TRANSFER_SIZE 160 * 80 * sizeof(uint16_t)
 

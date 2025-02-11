@@ -18,7 +18,7 @@
 #define LVGL_TICK_PERIOD_MS 100
 #define LVGL_TASK_MAX_DELAY_MS 300
 #define LVGL_TASK_MIN_DELAY_MS 50
-#define LVGL_TASK_STACK_SIZE (5 * 1024)
+#define LVGL_TASK_STACK_SIZE (25 * 1024)
 #define LVGL_TASK_PRIORITY 1
 
 /** Typedefs */
@@ -40,16 +40,10 @@ extern esp_lcd_panel_handle_t h_panel_handle;
 void lcd_init(void);
 
 /**
- * @brief Start LVGL task with a given UI
+ * @brief Load a UI screen to the LCD
  * @return void
  */
-void lcd_start(ui_fn_t ui_fn);
-
-/**
- * @brief Stop and detroy LVGL task
- * @return void
- */
-void lcd_stop(void);
+void lcd_load_ui(lv_obj_t *ui_screen);
 
 /**
  * @brief Locks the LVGL mutex due to the LVGL APIs are not thread-safe

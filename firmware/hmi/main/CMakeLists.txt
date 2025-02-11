@@ -12,6 +12,7 @@ idf_component_register(
   "server/server.c"
 
   "ui/index.c"
+  "ui/menu.c"
 
   "control/load.c"
 

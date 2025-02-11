@@ -1,9 +1,10 @@
 #include "driver/gpio.h"
 #include "esp_attr.h"
+#include "esp_timer.h"
 
 #include "common.h"
-#include "utils.h"
 #include "peripherals/buttons.h"
+#include "utils.h"
 
 /** Definitions */
 
@@ -17,10 +18,15 @@ volatile bool h_pending_button_cp = false;
 volatile bool h_pending_button_enc = false;
 
 /** Enable is trick because of not being able to deal ok with IRQ */
-volatile bool h_button_en = false;
-volatile bool h_button_en_last = false;
-volatile bool h_button_en_rising = false;
-volatile bool h_button_en_falling = false;
+bool h_button_en = false;
+bool h_button_en_last = false;
+bool h_button_en_rising = false;
+bool h_button_en_falling = false;
+
+/** We keep a ref for long press */
+bool h_button_enc = false;
+unsigned long h_button_enc_last = 0;
+bool h_button_enc_long_press = false;
 
 /** Forward Decl */
 static void buttons_direction_init(void);
@@ -47,6 +53,25 @@ void button_en_update()
   h_button_en_rising = h_button_en && !h_button_en_last;
   h_button_en_falling = !h_button_en && h_button_en_last;
   h_button_en_last = h_button_en;
+}
+
+void button_enc_update()
+{
+  h_button_enc = !gpio_get_level(GPIO_ENCODER_BTN);
+
+  /** Millis since start */
+  unsigned long now = (unsigned long)(esp_timer_get_time() / 1000ULL);
+
+  if (h_button_enc) {
+    if (h_button_enc_last == 0) {
+      h_button_enc_last = now;
+    } else if ((now - h_button_enc_last) >= BTN_ENC_LONG_PRESS_MS) {
+      h_button_enc_long_press = true;
+    }
+  } else {
+    h_button_enc_last = 0;
+    h_button_enc_long_press = false;
+  }
 }
 
 /**
@@ -81,6 +106,19 @@ void buttons_deactivate(void)
   gpio_intr_disable(GPIO_ENCODER_BTN);
 
   LOG_EPILOG
+}
+
+/**
+ * @brief Clear all pending IRQ
+ * @return void
+ */
+void clear_all_pending_irq(void)
+{
+  h_pending_button_cc = false;
+  h_pending_button_cv = false;
+  h_pending_button_cr = false;
+  h_pending_button_cp = false;
+  h_pending_button_enc = false;
 }
 
 /** Implementations */

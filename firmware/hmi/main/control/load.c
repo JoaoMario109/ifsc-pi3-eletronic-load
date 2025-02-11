@@ -1,3 +1,7 @@
+#include <stdio.h>
+
+#include "bus/spi.h"
+
 #include "common.h"
 #include "control/load.h"
 #include "utils.h"
@@ -7,11 +11,8 @@
 #include "peripherals/lcd.h"
 #include "peripherals/led.h"
 
-#include "bus/spi.h"
-
 #include "ui/index.h"
-
-#include <stdio.h>
+#include "ui/menu.h"
 
 /** Definitions */
 
@@ -24,6 +25,8 @@ load_state_t h_load_state = {0};
 TaskHandle_t h_task_control;
 
 /** Globals */
+bool on_index_screen = true;
+
 static int pulse_counter = 0;
 uint32_t *actual_set_point = &(h_load_state.control.cc.value_milli);
 
@@ -144,25 +147,25 @@ static void update_load_state(void)
     h_value_power_spinbox, h_load_state.measurement.cp_milli / 100
   );
 
-  spi_mutex_lock(-1);
+  // spi_mutex_lock(-1);
 
-  /** Open file /sdcard/meas.csv with create or append and store measurements */
-  FILE *file = fopen("/sdcard/meas.csv", "a");
-  if (file == NULL) {
-    return;
-  }
+  // /** Open file /sdcard/meas.csv with create or append and store measurements */
+  // FILE *file = fopen("/sdcard/meas.csv", "a");
+  // if (file == NULL) {
+  //   return;
+  // }
 
-  fprintf(
-    file, "%ld,%ld,%ld,%ld\n",
-    h_load_state.measurement.cc_milli,
-    h_load_state.measurement.cv_milli,
-    h_load_state.measurement.cr_milli,
-    h_load_state.measurement.cp_milli
-  );
+  // fprintf(
+  //   file, "%ld,%ld,%ld,%ld\n",
+  //   h_load_state.measurement.cc_milli,
+  //   h_load_state.measurement.cv_milli,
+  //   h_load_state.measurement.cr_milli,
+  //   h_load_state.measurement.cp_milli
+  // );
 
-  fclose(file);
+  // fclose(file);
 
-  spi_mutex_unlock();
+  // spi_mutex_unlock();
 
   switch (h_load_state.control.mode)
   {
@@ -183,6 +186,28 @@ static void update_load_state(void)
   }
 }
 
+static void index_control_loop()
+{
+  /** Get changes on pulse counter */
+  pcnt_unit_get_count(h_pcnt_unit, &pulse_counter);
+  encoder_clear();
+
+  /** Apply changes needed and clear pulse count if needed */
+  apply_pending_irq();
+
+  update_encoder_steps();
+
+  update_load_state();
+
+  /** Updates the control point */
+  *actual_set_point = (uint32_t)lv_spinbox_get_value(h_value_spinbox);
+}
+
+static void menu_control_loop()
+{
+
+}
+
 static void enable_task(void *pvParameters)
 {
   while (1)
@@ -199,26 +224,44 @@ static void enable_task(void *pvParameters)
   }
 }
 
+static void check_screen_switch(void)
+{
+  if (h_button_enc_long_press) {
+    on_index_screen = !on_index_screen;
+
+    if (on_index_screen) {
+      /** Clear all pending IRQ and pulse counter unit */
+      clear_all_pending_irq();
+      pcnt_unit_clear_count(h_pcnt_unit);
+
+      lcd_load_ui(h_scr_ui_index);
+    } else {
+      lcd_load_ui(h_scr_ui_menu);
+    }
+
+    /** Reset long press tracker */
+    h_button_enc_long_press = false;
+    h_button_enc_last = 0;
+  }
+}
+
 static void control_task(void *pvParameters)
 {
   encoder_start();
 
   while (1)
   {
+    /** For long press detection */
+    button_enc_update();
+
     if (lvgl_mutex_lock(250)) {
-      /** Get changes on pulse counter */
-      pcnt_unit_get_count(h_pcnt_unit, &pulse_counter);
-      encoder_clear();
+      check_screen_switch();
 
-      /** Apply changes needed and clear pulse count if needed */
-      apply_pending_irq();
-
-      update_encoder_steps();
-
-      update_load_state();
-
-      /** Updates the control point */
-      *actual_set_point = (uint32_t)lv_spinbox_get_value(h_value_spinbox);
+      if (on_index_screen) {
+        index_control_loop();
+      } else {
+        menu_control_loop();
+      }
 
       lvgl_mutex_unlock();
     }

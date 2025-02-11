@@ -2,6 +2,8 @@
 
 /** Handlers */
 
+lv_obj_t *h_scr_ui_index;
+
 lv_obj_t *h_led_enable;
 
 lv_obj_t *h_value_spinbox;
@@ -37,23 +39,21 @@ static void lv_spinbox_show_cursor(lv_obj_t *spinbox, bool en);
 
 /**
  * @brief Main index UI of the load, inital window
- *
- * @param disp Display handler
  * @return void
  */
-void index_ui_window(lv_disp_t *disp)
+void ui_index_window()
 {
-  lv_obj_t *scr = lv_disp_get_scr_act(disp);
+  h_scr_ui_index = lv_obj_create(NULL);
 
-  init_enable_led(scr);
+  init_enable_led(h_scr_ui_index);
 
-  init_value_spinbox(scr);
-  init_value_mode_label(scr);
+  init_value_spinbox(h_scr_ui_index);
+  init_value_mode_label(h_scr_ui_index);
 
-  init_value_current_spinbox(scr);
-  init_value_voltage_spinbox(scr);
-  init_value_resistance_spinbox(scr);
-  init_value_power_spinbox(scr);
+  init_value_current_spinbox(h_scr_ui_index);
+  init_value_voltage_spinbox(h_scr_ui_index);
+  init_value_resistance_spinbox(h_scr_ui_index);
+  init_value_power_spinbox(h_scr_ui_index);
 }
 
 /** Implementations */

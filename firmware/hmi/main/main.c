@@ -14,6 +14,7 @@
 #include "control/load.h"
 
 #include "ui/index.h"
+#include "ui/menu.h"
 
 /** Definitions */
 #define MODULE_NAME "main"
@@ -33,8 +34,11 @@ void app_main(void)
   lcd_init();
   sd_init();
 
-  /** Starts main UI */
-  lcd_start(index_ui_window);
+  /** Load all UIs */
+  ui_index_window();
+  ui_menu_window();
+
+  lcd_load_ui(h_scr_ui_index);
 
   /** Control initialization */
   control_init();
