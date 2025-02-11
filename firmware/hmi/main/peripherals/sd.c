@@ -28,20 +28,20 @@ void sd_mount()
 {
   LOG_PROLOG
 
-  sdmmc_host_t h_sd_host = SDSPI_HOST_DEFAULT();
-  h_sd_host.max_freq_khz = SD_SPI_FREQUENCY_KHZ;
-
-  sdspi_device_config_t h_sd_slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
-  h_sd_slot_config.gpio_cs = GPIO_SPI_SD_CS;
-  h_sd_slot_config.host_id = h_sd_host.slot;
-
-  esp_vfs_fat_sdmmc_mount_config_t h_mount_config = {
+  esp_vfs_fat_sdmmc_mount_config_t mount_config = {
     .format_if_mount_failed = false,
     .max_files = SD_MAX_FILES,
     .allocation_unit_size = SD_ALLOCATION_UNIT
   };
 
-  ESP_ERROR_CHECK(esp_vfs_fat_sdspi_mount(h_mount_point, &h_sd_host, &h_sd_slot_config, &h_mount_config, &h_sd_card));
+  sdmmc_host_t sd_host = SDSPI_HOST_DEFAULT();
+  sd_host.max_freq_khz = SD_SPI_FREQUENCY_KHZ;
+
+  sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
+  slot_config.gpio_cs = GPIO_SPI_SD_CS;
+  slot_config.host_id = sd_host.slot;
+
+  ESP_ERROR_CHECK(esp_vfs_fat_sdspi_mount(h_mount_point, &sd_host, &slot_config, &mount_config, &h_sd_card));
 
   LOG_EPILOG
 }
@@ -71,9 +71,7 @@ void sd_init(void)
 {
   LOG_PROLOG
 
-  h_sd_card = NULL;
-
-  spi_mutex_lock(-1);
+  //spi_mutex_lock(-1);
 
   sd_mount();
 
@@ -81,7 +79,7 @@ void sd_init(void)
   sdmmc_card_print_info(stdout, h_sd_card);
 #endif
 
-  spi_mutex_unlock();
+  //spi_mutex_unlock();
 
   LOG_EPILOG
 }

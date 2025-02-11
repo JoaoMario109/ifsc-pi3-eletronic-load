@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /** Comment this line to use in the Panel module */
-#define LOAD_MODULE
+//#define LOAD_MODULE
 
 /**
  * @brief The load operates with all values in milli base. It can operate in the following modes:
@@ -25,8 +25,7 @@ typedef enum load_parser_state
 {
   PARSER_WAIT_START = 0U,
   PARSER_WAIT_DATA,
-  PARSER_WAIT_CS_1,
-  PARSER_WAIT_CS_2,
+  PARSER_WAIT_CS,
 } load_parser_state_t;
 
 /**

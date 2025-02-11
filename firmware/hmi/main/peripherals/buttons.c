@@ -10,11 +10,17 @@
 #define MODULE_NAME "peripherals.buttons"
 
 /** Handlers */
+volatile bool h_pending_button_cc = false;
 volatile bool h_pending_button_cv = false;
 volatile bool h_pending_button_cr = false;
 volatile bool h_pending_button_cp = false;
-volatile bool h_pending_button_en = false;
 volatile bool h_pending_button_enc = false;
+
+/** Enable is trick because of not being able to deal ok with IRQ */
+volatile bool h_button_en = false;
+volatile bool h_button_en_last = false;
+volatile bool h_button_en_rising = false;
+volatile bool h_button_en_falling = false;
 
 /** Forward Decl */
 static void buttons_direction_init(void);
@@ -35,6 +41,14 @@ void buttons_init(void)
   LOG_EPILOG
 }
 
+void button_en_update()
+{
+  h_button_en = gpio_get_level(GPIO_BTN_EN);
+  h_button_en_rising = h_button_en && !h_button_en_last;
+  h_button_en_falling = !h_button_en && h_button_en_last;
+  h_button_en_last = h_button_en;
+}
+
 /**
  * @brief Enable buttons interrupts allowing to detect button press
  * @return void
@@ -47,7 +61,6 @@ void buttons_activate(void)
   gpio_intr_enable(GPIO_BTN_CV);
   gpio_intr_enable(GPIO_BTN_CR);
   gpio_intr_enable(GPIO_BTN_CP);
-  gpio_intr_enable(GPIO_BTN_EN);
   gpio_intr_enable(GPIO_ENCODER_BTN);
 
   LOG_EPILOG
@@ -65,7 +78,6 @@ void buttons_deactivate(void)
   gpio_intr_disable(GPIO_BTN_CV);
   gpio_intr_disable(GPIO_BTN_CR);
   gpio_intr_disable(GPIO_BTN_CP);
-  gpio_intr_disable(GPIO_BTN_EN);
   gpio_intr_disable(GPIO_ENCODER_BTN);
 
   LOG_EPILOG
@@ -77,12 +89,12 @@ static void buttons_direction_init(void)
   LOG_PROLOG
 
   ESP_ERROR_CHECK(gpio_set_direction(GPIO_BTN_CC, GPIO_MODE_INPUT));
-
-  ESP_ERROR_CHECK(gpio_set_direction(GPIO_BTN_CC, GPIO_MODE_INPUT));
   ESP_ERROR_CHECK(gpio_set_direction(GPIO_BTN_CV, GPIO_MODE_INPUT));
   ESP_ERROR_CHECK(gpio_set_direction(GPIO_BTN_CR, GPIO_MODE_INPUT));
   ESP_ERROR_CHECK(gpio_set_direction(GPIO_BTN_CP, GPIO_MODE_INPUT));
+
   ESP_ERROR_CHECK(gpio_set_direction(GPIO_BTN_EN, GPIO_MODE_INPUT));
+  ESP_ERROR_CHECK(gpio_set_pull_mode(GPIO_BTN_EN, GPIO_PULLUP_ONLY));
 
   ESP_ERROR_CHECK(gpio_set_direction(GPIO_ENCODER_BTN, GPIO_MODE_INPUT));
   ESP_ERROR_CHECK(gpio_set_pull_mode(GPIO_ENCODER_BTN, GPIO_PULLUP_ONLY));
@@ -108,9 +120,6 @@ static void buttons_irq_init(void)
   ESP_ERROR_CHECK(gpio_set_intr_type(GPIO_BTN_CP, GPIO_INTR_POSEDGE));
   ESP_ERROR_CHECK(gpio_isr_handler_add(GPIO_BTN_CP, gpio_isr_handler, (void*)GPIO_BTN_CP));
 
-  ESP_ERROR_CHECK(gpio_set_intr_type(GPIO_BTN_EN, GPIO_INTR_POSEDGE));
-  ESP_ERROR_CHECK(gpio_isr_handler_add(GPIO_BTN_EN, gpio_isr_handler, (void*)GPIO_BTN_EN));
-
   ESP_ERROR_CHECK(gpio_set_intr_type(GPIO_ENCODER_BTN, GPIO_INTR_POSEDGE));
   ESP_ERROR_CHECK(gpio_isr_handler_add(GPIO_ENCODER_BTN, gpio_isr_handler, (void*)GPIO_ENCODER_BTN));
 
@@ -124,6 +133,9 @@ static void IRAM_ATTR gpio_isr_handler(void *arg)
 
   switch (gpio_num)
   {
+    case GPIO_BTN_CC:
+      h_pending_button_cc = true;
+      break;
     case GPIO_BTN_CV:
       h_pending_button_cv = true;
       break;
@@ -132,9 +144,6 @@ static void IRAM_ATTR gpio_isr_handler(void *arg)
       break;
     case GPIO_BTN_CP:
       h_pending_button_cp = true;
-      break;
-    case GPIO_BTN_EN:
-      h_pending_button_en = true;
       break;
     case GPIO_ENCODER_BTN:
       h_pending_button_enc = true;

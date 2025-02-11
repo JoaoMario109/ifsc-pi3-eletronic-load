@@ -4,6 +4,8 @@
 #include "server/server.h"
 
 /** General Config */
+#define CONTROL_TASK_STACK_SIZE 5096U
+#define CONTROL_TASK_DELAY 100U
 
 /** Handlers */
 extern load_state_t h_load_state;

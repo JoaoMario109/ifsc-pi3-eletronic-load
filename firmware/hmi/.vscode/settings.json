@@ -1,0 +1,11 @@
+{
+  "files.associations": {
+    "load.h": "c",
+    "utils.h": "c",
+    "buttons.h": "c",
+    "encoder.h": "c",
+    "lcd.h": "c",
+    "index.h": "c",
+    "shared_mutex": "c"
+  }
+}

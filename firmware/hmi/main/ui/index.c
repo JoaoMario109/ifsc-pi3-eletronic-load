@@ -7,7 +7,7 @@ lv_obj_t *h_led_enable;
 lv_obj_t *h_value_spinbox;
 lv_obj_t *h_value_mode_label;
 
-lv_obj_t *h_value_current_spinbox;
+lv_obj_t *h_value_current_spinbox = NULL;
 lv_obj_t *h_value_voltage_spinbox;
 lv_obj_t *h_value_resistance_spinbox;
 lv_obj_t *h_value_power_spinbox;
@@ -25,13 +25,14 @@ static void init_value_resistance_spinbox(lv_obj_t *scr);
 static void init_value_power_spinbox(lv_obj_t *scr);
 
 static void init_display_label_spinbox(
-    lv_obj_t *scr,
-    lv_obj_t *spinbox,
-    const char *label,
-    int8_t label_x,
-    int8_t label_y,
-    int8_t spinbox_x,
-    int8_t spinbox_y);
+  lv_obj_t *scr,
+  lv_obj_t **spinbox,
+  const char *label,
+  int8_t label_x,
+  int8_t label_y,
+  int8_t spinbox_x,
+  int8_t spinbox_y
+);
 static void lv_spinbox_show_cursor(lv_obj_t *spinbox, bool en);
 
 /**
@@ -89,44 +90,45 @@ static void init_value_spinbox(lv_obj_t *scr)
 
 static void init_display_label_spinbox(
     lv_obj_t *scr,
-    lv_obj_t *spinbox,
+    lv_obj_t **spinbox,
     const char *label,
     int8_t label_x,
     int8_t label_y,
     int8_t spinbox_x,
-    int8_t spinbox_y)
+    int8_t spinbox_y
+)
 {
   lv_obj_t *current_label = lv_label_create(scr);
   lv_label_set_text(current_label, label);
   lv_obj_align(current_label, LV_ALIGN_RIGHT_MID, label_x, label_y);
 
-  spinbox = lv_spinbox_create(scr);
+  *spinbox = lv_spinbox_create(scr);
 
-  lv_spinbox_set_range(spinbox, 0, 20000);
-  lv_spinbox_set_digit_format(spinbox, 3, 2);
-  lv_obj_set_width(spinbox, 48);
-  lv_obj_align(spinbox, LV_ALIGN_RIGHT_MID, spinbox_x, spinbox_y);
-  lv_spinbox_show_cursor(spinbox, false);
+  lv_spinbox_set_range(*spinbox, 0, 999);
+  lv_spinbox_set_digit_format(*spinbox, 3, 2);
+  lv_obj_set_width(*spinbox, 48);
+  lv_obj_align(*spinbox, LV_ALIGN_RIGHT_MID, spinbox_x, spinbox_y);
+  lv_spinbox_show_cursor(*spinbox, false);
 }
 
 static void init_value_current_spinbox(lv_obj_t *scr)
 {
-  init_display_label_spinbox(scr, h_value_current_spinbox, "C", -53, 2, -2, 2);
+  init_display_label_spinbox(scr, &h_value_current_spinbox, "C", -116, 2, -65, 2);
 }
 
 static void init_value_voltage_spinbox(lv_obj_t *scr)
 {
-  init_display_label_spinbox(scr, h_value_voltage_spinbox, "V", -116, 2, -65, 2);
+  init_display_label_spinbox(scr, &h_value_voltage_spinbox, "V", -53, 2, -2, 2);
 }
 
 static void init_value_resistance_spinbox(lv_obj_t *scr)
 {
-  init_display_label_spinbox(scr, h_value_voltage_spinbox, "R", -53, 42, -2, 42);
+  init_display_label_spinbox(scr, &h_value_resistance_spinbox, "R", -116, 42, -65, 42);
 }
 
 static void init_value_power_spinbox(lv_obj_t *scr)
 {
-  init_display_label_spinbox(scr, h_value_voltage_spinbox, "P", -116, 42, -65, 42);
+  init_display_label_spinbox(scr, &h_value_power_spinbox, "P", -53, 42, -2, 42);
 }
 
 void lv_spinbox_show_cursor(lv_obj_t *spinbox, bool en)
