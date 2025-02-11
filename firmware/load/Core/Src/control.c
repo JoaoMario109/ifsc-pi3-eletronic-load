@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "control.h"
 #include "adc.h"
+#include "main.h"
+#include "server.h"
 
 static void pid_init(pid_controller_t *pid, float kp, float ki, float kd, float control_frequency, boundary_t integral_boundary, boundary_t output_boundary);
 
@@ -83,7 +85,6 @@ static float pid_update(pid_controller_t *pid, control_io_t *io)
 HAL_StatusTypeDef control_init(control_t *control_handler, mcp4725_t *dac)
 {
 	control_handler->dac = dac;
-	printf("Control init\n");
 	const boundary_t integral_boundary = {
 		.max = 0.03f,
 		.min = -0.03f,
@@ -159,7 +160,6 @@ HAL_StatusTypeDef control_init(control_t *control_handler, mcp4725_t *dac)
 		control_handler->io[i].measured_value = 0.0f;
 		control_handler->io[i].control_action = 0.0f;
 	}
-	printf("Control init done\n");
 	return HAL_OK;
 }
 
@@ -233,6 +233,18 @@ void control_update(control_t *control_handler)
 
 	mcp4725_set_voltage(control_handler->dac, 3.3f, analog_setpoint, false);
 
+}
+
+void control_set_from_server(control_t *control_handler, load_control_t *server_control)
+{
+	HAL_GPIO_WritePin(ENABLE_LOAD_GPIO_Port, ENABLE_LOAD_Pin, server_control->enable);
+
+	control_set_mode(control_handler, server_control->mode);
+
+	control_set_setpoint(control_handler, CONTROL_MODE_CC, server_control->cc.value_milli / 1000.0f);
+	control_set_setpoint(control_handler, CONTROL_MODE_CV, server_control->cv.value_milli / 1000.0f);
+	control_set_setpoint(control_handler, CONTROL_MODE_CR, server_control->cr.value_milli / 1000.0f);
+	control_set_setpoint(control_handler, CONTROL_MODE_CP, server_control->cp.value_milli / 1000.0f);
 }
 
 void control_set_setpoint(control_t *control_handler, control_mode_t mode, float setpoint)

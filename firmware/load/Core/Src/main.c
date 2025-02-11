@@ -26,7 +26,6 @@
 #include <ads111x.h>
 #include <adc.h>
 #include <uart.h>
-#include <hmi.h>
 #include <fan.h>
 #include <control.h>
 #include <utils.h>
@@ -50,15 +49,16 @@
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
-I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
 
 RTC_HandleTypeDef hrtc;
 
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
+DMA_HandleTypeDef hdma_usart1_tx;
 
 /* USER CODE BEGIN PV */
 extern float dac_voltage;
@@ -81,7 +81,7 @@ static void MX_I2C2_Init(void);
 static void MX_RTC_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART1_UART_Init(void);
-static void MX_I2C1_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 uint8_t data[6] = {0};
 extern uint32_t trigger_test;
@@ -144,7 +144,7 @@ int main(void)
   MX_RTC_Init();
   MX_TIM1_Init();
   MX_USART1_UART_Init();
-  MX_I2C1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   // MCP4725 device descriptor
   mcp4725_t dac;
@@ -157,12 +157,13 @@ int main(void)
   }
 
   adc_init(&hi2c2, &hadc1);
-  //hmi_init(&hi2c1, &dac);
-  uart_init(&huart1, &dac, &control);
+  uart_init(&huart1);
   fan_init(&htim1);
   control_init(&control, &dac);
 
-  HAL_GPIO_WritePin(ENABLE_LOAD_GPIO_Port, ENABLE_LOAD_Pin, GPIO_PIN_SET);
+  HAL_TIM_Base_Start_IT(&htim3);
+
+  HAL_GPIO_WritePin(ENABLE_LOAD_GPIO_Port, ENABLE_LOAD_Pin, GPIO_PIN_RESET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -177,61 +178,24 @@ int main(void)
       {
         LOG_ERROR("Error reading ADC\n");
       }
-      
-      
-      HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
-      HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+
       adc_ready = 0;
     }
 
     if (adc_all_channels_measured())
     {
-      //HAL_GPIO_TogglePin(EXTERNAL_TRIGGER_IN_GPIO_Port, EXTERNAL_TRIGGER_IN_Pin);
       adc_calculate_average();
+      control_set_from_server(&control, &(h_load_state.control));
       control_update(&control);
-      printf("sp: %f, ms: %f, ca: %f\n", control.io[control.mode].setpoint, control.io[control.mode].measured_value, control.io[control.mode].control_action);
     }
 
     static uint32_t next_uart_update = 0;
     if (HAL_GetTick() >= next_uart_update)
     {
+      adc_measure();
       next_uart_update = HAL_GetTick() + 200;
-      // printf("mode: %d ca: %0.3f | CC => set: %0.3f meas: %0.3f | CV => set: %0.3f meas: %0.3f | CP => set: %0.3f meas: %0.3f | CR => set: %0.3f meas: %0.3f \n",
-      //   control.mode,
-      //   control.io[control.mode].control_action,
-      //   control.io[CONTROL_MODE_CC].setpoint,
-      //   control.io[CONTROL_MODE_CC].measured_value,
-      //   control.io[CONTROL_MODE_CV].setpoint,
-      //   control.io[CONTROL_MODE_CV].measured_value,
-      //   control.io[CONTROL_MODE_CP].setpoint,
-      //   control.io[CONTROL_MODE_CP].measured_value,
-      //   control.io[CONTROL_MODE_CR].setpoint,
-      //   control.io[CONTROL_MODE_CR].measured_value
-      // );
-      uart_run();
       fan_update();
-
-      if (control.io[control.mode].setpoint > 0.9)
-      {
-        HAL_GPIO_WritePin(EXTERNAL_TRIGGER_IN_GPIO_Port, EXTERNAL_TRIGGER_IN_Pin, GPIO_PIN_SET);
-      }
-      else
-      {
-        HAL_GPIO_WritePin(EXTERNAL_TRIGGER_IN_GPIO_Port, EXTERNAL_TRIGGER_IN_Pin, GPIO_PIN_RESET);
-      }
     }
-
-    static uint32_t next_trigger_start = 0;
-    if (HAL_GetTick() >= next_trigger_start)
-    {
-      next_trigger_start = HAL_GetTick() + 400;
-      trigger_test = 1;
-    }
-
-    /* 
-     * 0.632mV osci = 1A
-     * WRTE:DAC1:0000.1059
-    */
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -331,40 +295,6 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
-
-}
-
-/**
-  * @brief I2C1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C1_Init(void)
-{
-
-  /* USER CODE BEGIN I2C1_Init 0 */
-
-  /* USER CODE END I2C1_Init 0 */
-
-  /* USER CODE BEGIN I2C1_Init 1 */
-
-  /* USER CODE END I2C1_Init 1 */
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 100000;
-  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c1.Init.OwnAddress1 = 36;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C1_Init 2 */
-
-  /* USER CODE END I2C1_Init 2 */
 
 }
 
@@ -508,6 +438,51 @@ static void MX_TIM1_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 256;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 56250;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -553,6 +528,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
   /* DMA1_Channel5_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
@@ -621,7 +599,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(ADC_ALERT_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 6, 0);
   HAL_NVIC_EnableIRQ(EXTI1_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
@@ -629,7 +607,13 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim == &htim3)
+  {
+    uart_transmit();
+  }
+}
 /* USER CODE END 4 */
 
 /**

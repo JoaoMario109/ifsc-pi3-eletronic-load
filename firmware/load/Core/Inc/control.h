@@ -4,6 +4,8 @@
 #include "stm32f1xx_hal.h"
 #include "mcp4725.h"
 
+#include "uart.h"
+
 
 typedef enum control_mode {
 	CONTROL_MODE_CC = 0,
@@ -74,5 +76,7 @@ void control_set_constants(control_t *control_handler, control_mode_t mode, floa
 void control_set_kp(control_t *control_handler, control_mode_t mode, float kp);
 void control_set_ki(control_t *control_handler, control_mode_t mode, float ki);
 void control_set_kd(control_t *control_handler, control_mode_t mode, float kd);
+
+void control_set_from_server(control_t *control_handler, load_control_t *server_control);
 
 #endif // !CONTROL_H

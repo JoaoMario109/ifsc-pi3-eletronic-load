@@ -6,6 +6,7 @@
 #include "utils.h"
 /* ADC header */
 #include "adc.h"
+#include "uart.h"
 
 /**
  * @brief ADC correction coefficients
@@ -273,6 +274,12 @@ void adc_calculate_average(void)
 		adc.channels[i].value.sum = 0;
 		adc.channels[i].value.samples = 0;
 	}
+	h_load_state.measurement.cc_milli = (uint32_t)(adc_get_value(ADC_INPUT_CURRENT) * 1000);
+	h_load_state.measurement.cv_milli = (uint32_t)(adc_get_value(ADC_INPUT_VOLTAGE) * 1000);
+	h_load_state.measurement.cr_milli = (uint32_t)(adc_get_value(ADC_INPUT_VOLTAGE) / adc_get_value(ADC_INPUT_CURRENT) * 1000);
+	h_load_state.measurement.cp_milli = (uint32_t)(adc_get_value(ADC_INPUT_VOLTAGE) * adc_get_value(ADC_INPUT_CURRENT) * 1000);
+	h_load_state.measurement.temp_milli = (uint32_t)(adc_get_value(ADC_TEMPERATURE) * 1000);
+
 }
 
 /**
