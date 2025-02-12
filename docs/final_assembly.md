@@ -43,3 +43,6 @@ A seguir são apresentadas imagens da montagem final do sistema, com destaque pa
 
 ![Montagem Final](./assets/final-assembly-test.jpg)
 > *Figura 3: Ilustra um teste real da carga sendo modificada pelo painel de controle*
+
+![UI Python](./assets/ui-sdk.png)
+> *Figura 4: Ilustra a UI de controle via adaptador USB/Serial*
