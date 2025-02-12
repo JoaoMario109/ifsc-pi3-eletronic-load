@@ -109,6 +109,24 @@ void buttons_deactivate(void)
 }
 
 /**
+ * @brief Enable encoder button interrupt
+ * @return void
+ */
+void button_enc_activate(void)
+{
+  gpio_intr_enable(GPIO_ENCODER_BTN);
+}
+
+/**
+ * @brief Disable encoder button interrupt
+ * @return void
+ */
+void button_enc_deactivate(void)
+{
+  gpio_intr_disable(GPIO_ENCODER_BTN);
+}
+
+/**
  * @brief Clear all pending IRQ
  * @return void
  */

@@ -13,8 +13,11 @@ idf_component_register(
 
   "ui/index.c"
   "ui/menu.c"
+  "ui/stream.c"
 
   "control/load.c"
+  "control/menu.c"
+  "control/stream.c"
 
   "main.c"
   INCLUDE_DIRS "."

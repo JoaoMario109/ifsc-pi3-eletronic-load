@@ -63,25 +63,4 @@ void sd_unmount()
   LOG_EPILOG
 }
 
-/**
- * @brief Initializes the SD card
- * @return void
- */
-void sd_init(void)
-{
-  LOG_PROLOG
-
-  //spi_mutex_lock(-1);
-
-  sd_mount();
-
-#ifdef DEBUG_ACTIVE
-  sdmmc_card_print_info(stdout, h_sd_card);
-#endif
-
-  //spi_mutex_unlock();
-
-  LOG_EPILOG
-}
-
 /** Implementations */

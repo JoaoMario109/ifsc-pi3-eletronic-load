@@ -25,4 +25,14 @@ extern lv_obj_t *h_value_power_spinbox;
  */
 void ui_index_window();
 
+void init_display_label_spinbox(
+  lv_obj_t *scr,
+  lv_obj_t **spinbox,
+  const char *label,
+  int8_t label_x,
+  int8_t label_y,
+  int8_t spinbox_x,
+  int8_t spinbox_y
+);
+
 #endif // !__UI_INDEX_H__

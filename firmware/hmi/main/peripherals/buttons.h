@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 /** General config */
-#define BTN_ENC_LONG_PRESS_MS 2000U
+#define BTN_ENC_LONG_PRESS_MS 1500U
 
 /** Handlers */
 extern volatile bool h_pending_button_cc;
@@ -43,6 +43,18 @@ void buttons_activate(void);
  * @return void
  */
 void buttons_deactivate(void);
+
+/**
+ * @brief Enable encoder button interrupt
+ * @return void
+ */
+void button_enc_activate(void);
+
+/**
+ * @brief Disable encoder button interrupt
+ * @return void
+ */
+void button_enc_deactivate(void);
 
 /**
  * @brief Clear all pending IRQ

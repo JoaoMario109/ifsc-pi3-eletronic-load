@@ -37,7 +37,8 @@ typedef enum load_mode
   CC = 0U, /**< Constant Current mode */
   CV,      /**< Constant Voltage mode */
   CR,      /**< Constant Resistance mode */
-  CP       /**< Constant Power mode */
+  CP,      /**< Constant Power mode */
+  NONE,    /**< No mode */
 } load_mode_t;
 
 /**
@@ -69,6 +70,8 @@ typedef struct load_control
  */
 typedef struct load_measurement
 {
+  // load_mode_t over;
+  // load_mode_t under;
   uint32_t cc_milli;    /**< Measured current in milli-amperes */
   uint32_t cv_milli;    /**< Measured voltage in milli-volts */
   uint32_t cr_milli;    /**< Measured resistance in milli-ohms */

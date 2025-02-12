@@ -25,16 +25,6 @@ static void init_value_current_spinbox(lv_obj_t *scr);
 static void init_value_voltage_spinbox(lv_obj_t *scr);
 static void init_value_resistance_spinbox(lv_obj_t *scr);
 static void init_value_power_spinbox(lv_obj_t *scr);
-
-static void init_display_label_spinbox(
-  lv_obj_t *scr,
-  lv_obj_t **spinbox,
-  const char *label,
-  int8_t label_x,
-  int8_t label_y,
-  int8_t spinbox_x,
-  int8_t spinbox_y
-);
 static void lv_spinbox_show_cursor(lv_obj_t *spinbox, bool en);
 
 /**
@@ -54,6 +44,29 @@ void ui_index_window()
   init_value_voltage_spinbox(h_scr_ui_index);
   init_value_resistance_spinbox(h_scr_ui_index);
   init_value_power_spinbox(h_scr_ui_index);
+}
+
+void init_display_label_spinbox(
+    lv_obj_t *scr,
+    lv_obj_t **spinbox,
+    const char *label,
+    int8_t label_x,
+    int8_t label_y,
+    int8_t spinbox_x,
+    int8_t spinbox_y
+)
+{
+  lv_obj_t *current_label = lv_label_create(scr);
+  lv_label_set_text(current_label, label);
+  lv_obj_align(current_label, LV_ALIGN_RIGHT_MID, label_x, label_y);
+
+  *spinbox = lv_spinbox_create(scr);
+
+  lv_spinbox_set_range(*spinbox, 0, 999);
+  lv_spinbox_set_digit_format(*spinbox, 3, 2);
+  lv_obj_set_width(*spinbox, 48);
+  lv_obj_align(*spinbox, LV_ALIGN_RIGHT_MID, spinbox_x, spinbox_y);
+  lv_spinbox_show_cursor(*spinbox, false);
 }
 
 /** Implementations */
@@ -86,29 +99,6 @@ static void init_value_spinbox(lv_obj_t *scr)
   lv_spinbox_set_digit_format(h_value_spinbox, 5, 2);
   lv_obj_set_width(h_value_spinbox, 111);
   lv_obj_align(h_value_spinbox, LV_ALIGN_TOP_RIGHT, -2, 5);
-}
-
-static void init_display_label_spinbox(
-    lv_obj_t *scr,
-    lv_obj_t **spinbox,
-    const char *label,
-    int8_t label_x,
-    int8_t label_y,
-    int8_t spinbox_x,
-    int8_t spinbox_y
-)
-{
-  lv_obj_t *current_label = lv_label_create(scr);
-  lv_label_set_text(current_label, label);
-  lv_obj_align(current_label, LV_ALIGN_RIGHT_MID, label_x, label_y);
-
-  *spinbox = lv_spinbox_create(scr);
-
-  lv_spinbox_set_range(*spinbox, 0, 999);
-  lv_spinbox_set_digit_format(*spinbox, 3, 2);
-  lv_obj_set_width(*spinbox, 48);
-  lv_obj_align(*spinbox, LV_ALIGN_RIGHT_MID, spinbox_x, spinbox_y);
-  lv_spinbox_show_cursor(*spinbox, false);
 }
 
 static void init_value_current_spinbox(lv_obj_t *scr)

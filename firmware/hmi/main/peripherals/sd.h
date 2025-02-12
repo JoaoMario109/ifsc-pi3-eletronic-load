@@ -26,12 +26,6 @@
 /** Prototypes */
 
 /**
- * @brief Initializes the SD card
- * @return void
- */
-void sd_init(void);
-
-/**
  * @brief Mounts the SD card
  * @return void
  */

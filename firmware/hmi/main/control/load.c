@@ -1,10 +1,13 @@
 #include <stdio.h>
 
+#include "common.h"
+#include "utils.h"
+
 #include "bus/spi.h"
 
-#include "common.h"
 #include "control/load.h"
-#include "utils.h"
+#include "control/menu.h"
+#include "control/stream.h"
 
 #include "peripherals/buttons.h"
 #include "peripherals/encoder.h"
@@ -13,6 +16,7 @@
 
 #include "ui/index.h"
 #include "ui/menu.h"
+#include "ui/stream.h"
 
 /** Definitions */
 
@@ -21,11 +25,9 @@
 /** Control state handler */
 load_state_t h_load_state = {0};
 
-/** Tasks */
-TaskHandle_t h_task_control;
-
 /** Globals */
-bool on_index_screen = true;
+bool h_control_load_active = true;
+bool h_control_enable_active = true;
 
 static int pulse_counter = 0;
 uint32_t *actual_set_point = &(h_load_state.control.cc.value_milli);
@@ -38,21 +40,46 @@ static void update_setpoint_multiplier(void);
 static void apply_pending_irq(void);
 static void update_encoder_steps(void);
 static void update_load_state(void);
-static void control_task(void *pvParameters);
+static void control_load_loop();
+static void check_screen_switch(void);
+static void load_task(void *pvParameters);
 static void enable_task(void *pvParameters);
 
 /**
  * @brief Initialize load control module
  * @return void
  */
-void control_init(void)
+void load_init(void)
 {
   LOG_PROLOG
 
-  xTaskCreate(control_task, "ctrl", CONTROL_TASK_STACK_SIZE, NULL, 1, NULL);
-  xTaskCreate(enable_task, "en", CONTROL_TASK_STACK_SIZE, NULL, 1, NULL);
+  encoder_start();
+
+  load_prepare();
+
+  xTaskCreate(load_task, "load", LOAD_TASK_STACK_SIZE, NULL, 1, NULL);
+  xTaskCreate(enable_task, "en", LOAD_TASK_STACK_SIZE, NULL, 1, NULL);
 
   LOG_EPILOG
+}
+
+/**
+ * @brief Generic preparations for load control used when resuming from other screen
+ * @return void
+ */
+void load_prepare(void)
+{
+  buttons_activate();
+
+  /** Clear all pending IRQ and pulse counter unit */
+  clear_all_pending_irq();
+  pcnt_unit_clear_count(h_pcnt_unit);
+
+  /** Set the UI src to the display */
+  lcd_load_ui(h_scr_ui_index);
+
+  /** Activate control loops */
+  h_control_load_active = true;
 }
 
 /** Implementations */
@@ -138,34 +165,14 @@ static void update_load_state(void)
     h_value_current_spinbox, h_load_state.measurement.cc_milli / 100U
   );
   lv_spinbox_set_value(
-    h_value_voltage_spinbox, h_load_state.measurement.cv_milli / 100
+    h_value_voltage_spinbox, h_load_state.measurement.cv_milli / 100U
   );
   lv_spinbox_set_value(
-    h_value_resistance_spinbox, h_load_state.measurement.cr_milli / 100
+    h_value_resistance_spinbox, h_load_state.measurement.cr_milli / 100U
   );
   lv_spinbox_set_value(
-    h_value_power_spinbox, h_load_state.measurement.cp_milli / 100
+    h_value_power_spinbox, h_load_state.measurement.cp_milli / 100U
   );
-
-  // spi_mutex_lock(-1);
-
-  // /** Open file /sdcard/meas.csv with create or append and store measurements */
-  // FILE *file = fopen("/sdcard/meas.csv", "a");
-  // if (file == NULL) {
-  //   return;
-  // }
-
-  // fprintf(
-  //   file, "%ld,%ld,%ld,%ld\n",
-  //   h_load_state.measurement.cc_milli,
-  //   h_load_state.measurement.cv_milli,
-  //   h_load_state.measurement.cr_milli,
-  //   h_load_state.measurement.cp_milli
-  // );
-
-  // fclose(file);
-
-  // spi_mutex_unlock();
 
   switch (h_load_state.control.mode)
   {
@@ -186,7 +193,7 @@ static void update_load_state(void)
   }
 }
 
-static void index_control_loop()
+static void control_load_loop()
 {
   /** Get changes on pulse counter */
   pcnt_unit_get_count(h_pcnt_unit, &pulse_counter);
@@ -203,68 +210,58 @@ static void index_control_loop()
   *actual_set_point = (uint32_t)lv_spinbox_get_value(h_value_spinbox);
 }
 
-static void menu_control_loop()
+static void check_screen_switch(void)
 {
+  /** This controls the flow between screens */
+  if (h_button_enc_long_press) {
+    /** Deactivate load loop to avoid conflicts */
+    h_control_load_active = false;
 
+    /** Reset long press tracker */
+    h_button_enc_long_press = false;
+    h_button_enc_last = 0;
+
+    /** Switch to menu screen */
+    menu_prepare();
+  }
 }
 
 static void enable_task(void *pvParameters)
 {
   while (1)
   {
-    button_en_update();
+    if (h_control_enable_active)
+    {
+      /** For enable trick detection */
+      button_en_update();
 
-    if (h_button_en_rising) {
-      lvgl_mutex_lock(-1);
-      update_enabled_status();
-      lvgl_mutex_unlock();
+      if (h_button_en_rising) {
+        lvgl_mutex_lock(-1);
+        update_enabled_status();
+        lvgl_mutex_unlock();
+      }
     }
-
     vTaskDelay(pdMS_TO_TICKS(100));
   }
 }
 
-static void check_screen_switch(void)
+static void load_task(void *pvParameters)
 {
-  if (h_button_enc_long_press) {
-    on_index_screen = !on_index_screen;
-
-    if (on_index_screen) {
-      /** Clear all pending IRQ and pulse counter unit */
-      clear_all_pending_irq();
-      pcnt_unit_clear_count(h_pcnt_unit);
-
-      lcd_load_ui(h_scr_ui_index);
-    } else {
-      lcd_load_ui(h_scr_ui_menu);
-    }
-
-    /** Reset long press tracker */
-    h_button_enc_long_press = false;
-    h_button_enc_last = 0;
-  }
-}
-
-static void control_task(void *pvParameters)
-{
-  encoder_start();
-
   while (1)
   {
-    /** For long press detection */
-    button_enc_update();
+    /** Only run this task if activated */
+    if (h_control_load_active)
+    {
+      /** For long press detection */
+      button_enc_update();
 
-    if (lvgl_mutex_lock(250)) {
-      check_screen_switch();
-
-      if (on_index_screen) {
-        index_control_loop();
-      } else {
-        menu_control_loop();
+      if (lvgl_mutex_lock(250)) {
+        /** Check if need to switch to other screen */
+        check_screen_switch();
+        control_load_loop();
+        lvgl_mutex_unlock();
       }
-
-      lvgl_mutex_unlock();
     }
-    vTaskDelay(pdMS_TO_TICKS(CONTROL_TASK_DELAY));
+    vTaskDelay(pdMS_TO_TICKS(LOAD_TASK_DELAY));
   }
 }
