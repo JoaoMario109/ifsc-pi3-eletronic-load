@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 
 #include "server.h"
 
@@ -26,12 +27,12 @@ uint8_t *parse_byte(uint8_t byte)
 {
   static uint8_t magic_byte = (uint8_t)(RX_MAGIC_WORD >> 24U);
 
-  switch (byte) {
+  switch (parser_state) {
     case PARSER_WAIT_START:
       if (byte == magic_byte) {
         parser_msg_buffer[current_byte++] = byte;
         if (current_byte == sizeof(RX_MAGIC_WORD)) {
-          parser_state++;
+          parser_state = PARSER_WAIT_DATA;
         }
       } else {
         current_byte = 0U;
@@ -40,18 +41,17 @@ uint8_t *parse_byte(uint8_t byte)
     case PARSER_WAIT_DATA:
       parser_msg_buffer[current_byte++] = byte;
       if (current_byte == sizeof(RX_MAGIC_WORD) + RX_DATA_SIZE) {
-        parser_state++;
+        parser_state = PARSER_WAIT_CS;
       }
       break;
-    case PARSER_WAIT_CS_1:
+    case PARSER_WAIT_CS:
       parser_msg_buffer[current_byte++] = byte;
-      parser_state++;
+      if (current_byte == RX_MSG_SIZE) {
+        current_byte = 0U;
+        parser_state = PARSER_WAIT_START;
+        return parser_msg_buffer;
+      }
       break;
-    case PARSER_WAIT_CS_2:
-      parser_msg_buffer[current_byte++] = byte;
-      current_byte = 0U;
-      parser_state = PARSER_WAIT_START;
-      return parser_msg_buffer;
     default:
       current_byte = 0U;
       parser_state = PARSER_WAIT_START;

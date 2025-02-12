@@ -25,8 +25,7 @@ typedef enum load_parser_state
 {
   PARSER_WAIT_START = 0U,
   PARSER_WAIT_DATA,
-  PARSER_WAIT_CS_1,
-  PARSER_WAIT_CS_2,
+  PARSER_WAIT_CS,
 } load_parser_state_t;
 
 /**

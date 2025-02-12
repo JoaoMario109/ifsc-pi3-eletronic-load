@@ -42,7 +42,7 @@ void uart_transmit(void)
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
   /** We only care about our uart */
-  if (huart != &uart)
+  if (huart != uart)
   {
     return;
   }
@@ -53,12 +53,13 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
   /** We only care about our uart */
-  if (huart != &uart)
+  if (huart != uart)
   {
     return;
   }
 
   while (uart_buffer_parsed != Size) {
+    /* Print all the buffer */
     uint8_t *msg = parse_byte(uart_rx_buffer[uart_buffer_parsed]);
 
     if (msg != NULL) {
@@ -67,15 +68,14 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         LOG_ERROR("RX data error\n");
       }
     }
-
-    uart_buffer_parsed = (uart_buffer_parsed + 1) % (RX_MSG_SIZE * 2U);
+    uart_buffer_parsed = (uart_buffer_parsed + 1) % ((RX_MSG_SIZE * 2U) + 1);
   }
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
   /** We only care about our uart */
-  if (huart != &uart)
+  if (huart != uart)
   {
     return;
   }
