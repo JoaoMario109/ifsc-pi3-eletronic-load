@@ -56,9 +56,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/uart.c
     Core/Src/mcp4725.c
     Core/Src/ads111x.c
-    Core/Src/hmi.c
     Core/Src/fan.c
     Core/Src/control.c
+    Core/Src/server.c
 )
 
 # Add include paths

@@ -4,9 +4,11 @@
 #include "main.h"
 #include "server.h"
 
-static void pid_init(pid_controller_t *pid, float kp, float ki, float kd, float control_frequency, boundary_t integral_boundary, boundary_t output_boundary);
 
+/* Prototypes */
+static void pid_init(pid_controller_t *pid, float kp, float ki, float kd, float control_frequency, boundary_t integral_boundary, boundary_t output_boundary);
 static float pid_update(pid_controller_t *pid, control_io_t *io);
+static void control_enable_load(uint8_t enable);
 
 static void pid_init(pid_controller_t *pid, float kp, float ki, float kd, float control_frequency, boundary_t integral_boundary, boundary_t output_boundary)
 {
@@ -173,7 +175,6 @@ void control_update(control_t *control_handler)
 	control_handler->io[CONTROL_MODE_CP].measured_value = adc_get_value(ADC_INPUT_VOLTAGE) * adc_get_value(ADC_INPUT_CURRENT);
 	control_handler->io[CONTROL_MODE_CR].measured_value = adc_get_value(ADC_INPUT_VOLTAGE) / adc_get_value(ADC_INPUT_CURRENT);
 
-
 	if (control_handler->mode == CONTROL_MODE_CP)
 	{
 
@@ -235,12 +236,18 @@ void control_update(control_t *control_handler)
 
 }
 
+
+static void control_enable_load(uint8_t enable)
+{
+	HAL_GPIO_WritePin(ENABLE_LOAD_GPIO_Port, ENABLE_LOAD_Pin, enable);
+}
+
 void control_set_from_server(control_t *control_handler, load_control_t *server_control)
 {
-	HAL_GPIO_WritePin(ENABLE_LOAD_GPIO_Port, ENABLE_LOAD_Pin, server_control->enable);
+	control_enable_load(server_control->enable);
 
 	control_set_mode(control_handler, server_control->mode);
-
+	
 	control_set_setpoint(control_handler, CONTROL_MODE_CC, server_control->cc.value_milli / 1000.0f);
 	control_set_setpoint(control_handler, CONTROL_MODE_CV, server_control->cv.value_milli / 1000.0f);
 	control_set_setpoint(control_handler, CONTROL_MODE_CR, server_control->cr.value_milli / 1000.0f);
