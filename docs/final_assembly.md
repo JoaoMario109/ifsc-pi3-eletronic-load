@@ -36,3 +36,10 @@ Foram adicionados **conectores banana** nos pontos de entrada/saída de corrente
 - Esse design modular permite desconectar o painel com facilidade. Dessa forma, é possível:
   1. Conectar um **conversor USB-Serial** diretamente na placa de carga para realizar testes, enviar firmware ou receber dados via PC.
   2. Utilizar a **SDK em Python** ou a **UI Python** para monitoramento e controle do sistema.
+
+## Montagem Final
+
+A seguir são apresentadas imagens da montagem final do sistema, com destaque para a integração entre a placa de carga e o painel de controle.
+
+![Montagem Final](./assets/final-assembly-test.jpg)
+> *Figura 3: Ilustra um teste real da carga sendo modificada pelo painel de controle*
