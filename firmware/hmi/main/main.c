@@ -28,8 +28,6 @@ void app_main(void)
 {
   LOG_PROLOG
 
-  vTaskDelay(2000 / portTICK_PERIOD_MS);
-
   spi_init();
 
   /** Board peripherals initialization */

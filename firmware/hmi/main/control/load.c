@@ -38,6 +38,7 @@ static void reload_setpoint_to_encoder(void);
 static void update_enabled_status(void);
 static void update_setpoint_multiplier(void);
 static void apply_pending_irq(void);
+static void update_led_ui_status(void);
 static void update_encoder_steps(void);
 static void update_load_state(void);
 static void control_load_loop();
@@ -75,6 +76,8 @@ void load_prepare(void)
   clear_all_pending_irq();
   pcnt_unit_clear_count(h_pcnt_unit);
 
+  update_led_ui_status();
+
   /** Set the UI src to the display */
   lcd_load_ui(h_scr_ui_index);
 
@@ -90,15 +93,20 @@ static void reload_setpoint_to_encoder(void)
   lv_spinbox_set_value(h_value_spinbox, *actual_set_point);
 }
 
-static void update_enabled_status(void)
+static void update_led_ui_status(void)
 {
-  h_load_state.control.enable = !h_load_state.control.enable;
   if (h_load_state.control.enable) {
     lv_led_on(h_led_enable);
   } else {
     lv_led_off(h_led_enable);
   }
   set_led_enable(h_load_state.control.enable);
+}
+
+static void update_enabled_status(void)
+{
+  h_load_state.control.enable = !h_load_state.control.enable;
+  update_led_ui_status();
 }
 
 static void update_setpoint_multiplier(void)
